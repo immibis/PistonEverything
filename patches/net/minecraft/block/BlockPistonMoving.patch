@@ -1,0 +1,26 @@
+--- /media/code/minecraft-dev/1.6.2/forge/mcp/src/minecraft//./net/minecraft/block/BlockPistonMoving.java	2013-09-16 18:38:17.000000000 -0700
++++ ./src//./net/minecraft/block/BlockPistonMoving.java	2013-09-19 21:22:01.000000000 -0700
+@@ -6,6 +6,7 @@
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.entity.player.EntityPlayer;
++import net.minecraft.nbt.NBTTagCompound;
+ import net.minecraft.tileentity.TileEntity;
+ import net.minecraft.tileentity.TileEntityPiston;
+ import net.minecraft.util.AxisAlignedBB;
+@@ -149,9 +150,14 @@
+     /**
+      * gets a new TileEntityPiston created with the arguments provided.
+      */
++    public static TileEntity getTileEntity(int par0, int par1, int par2, boolean par3, boolean par4, NBTTagCompound tileEntityData)
++    {
++        return new TileEntityPiston(par0, par1, par2, par3, par4, tileEntityData);
++    }
++
+     public static TileEntity getTileEntity(int par0, int par1, int par2, boolean par3, boolean par4)
+     {
+-        return new TileEntityPiston(par0, par1, par2, par3, par4);
++    	return new TileEntityPiston(par0, par1, par2, par3, par4);
+     }
+ 
+     /**

@@ -1,0 +1,73 @@
+--- /media/code/minecraft-dev/1.6.2/forge/mcp/src/minecraft//./net/minecraft/tileentity/TileEntityPiston.java	2013-09-16 18:38:16.000000000 -0700
++++ ./src//./net/minecraft/tileentity/TileEntityPiston.java	2013-09-18 22:56:55.000000000 -0700
+@@ -15,6 +15,7 @@
+ {
+     private int storedBlockID;
+     private int storedMetadata;
++    private NBTTagCompound storedTileEntityData;
+ 
+     /** the side the front of the piston is on */
+     private int storedOrientation;
+@@ -30,13 +31,19 @@
+ 
+     public TileEntityPiston() {}
+ 
+-    public TileEntityPiston(int par1, int par2, int par3, boolean par4, boolean par5)
++    public TileEntityPiston(int par1, int par2, int par3, boolean par4, boolean par5) {
++    	this(par1, par2, par3, par4, par5, new NBTTagCompound());
++    }
++    
++    public TileEntityPiston(int par1, int par2, int par3, boolean par4, boolean par5, NBTTagCompound par6)
+     {
+         this.storedBlockID = par1;
+         this.storedMetadata = par2;
+         this.storedOrientation = par3;
+         this.extending = par4;
+         this.shouldHeadBeRendered = par5;
++        
++        this.storedTileEntityData = par6;
+     }
+ 
+     public int getStoredBlockID()
+@@ -139,6 +146,21 @@
+         return this.extending ? (this.getProgress(par1) - 1.0F) * (float)Facing.offsetsZForSide[this.storedOrientation] : (1.0F - this.getProgress(par1)) * (float)Facing.offsetsZForSide[this.storedOrientation];
+     }
+ 
++    public void restoreStoredBlock () {
++    	this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
++        this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.storedMetadata, 3);
++        this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
++
++        if (!this.storedTileEntityData.hasNoTags()) {
++        	this.storedTileEntityData.setInteger("x", this.xCoord);
++        	this.storedTileEntityData.setInteger("y", this.yCoord);
++        	this.storedTileEntityData.setInteger("z", this.zCoord);
++        	TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord, this.zCoord);
++        	te.readFromNBT(this.storedTileEntityData);
++        	te.blockMetadata = this.storedMetadata;
++        }                
++    }
++    
+     /**
+      * removes a pistons tile entity (and if the piston is moving, stops it)
+      */
+@@ -152,8 +174,7 @@
+ 
+             if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) == Block.pistonMoving.blockID)
+             {
+-                this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
+-                this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
++            	this.restoreStoredBlock();                
+             }
+         }
+     }
+@@ -174,8 +195,7 @@
+ 
+             if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) == Block.pistonMoving.blockID)
+             {
+-                this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
+-                this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
++                this.restoreStoredBlock();
+             }
+         }
+         else
