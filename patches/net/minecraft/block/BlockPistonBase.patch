@@ -1,5 +1,5 @@
---- /media/code/minecraft-dev/1.6.2/forge/mcp/src/minecraft//./net/minecraft/block/BlockPistonBase.java	2013-09-16 18:38:17.000000000 -0700
-+++ ./src//./net/minecraft/block/BlockPistonBase.java	2013-09-18 18:55:25.000000000 -0700
+--- net/minecraft/block/BlockPistonBase.java
++++ net/minecraft/block/BlockPistonBase.java
 @@ -10,6 +10,7 @@
  import net.minecraft.entity.EntityLivingBase;
  import net.minecraft.entity.player.EntityPlayer;

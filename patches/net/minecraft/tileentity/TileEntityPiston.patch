@@ -1,5 +1,5 @@
---- /media/code/minecraft-dev/1.6.2/forge/mcp/src/minecraft//./net/minecraft/tileentity/TileEntityPiston.java	2013-09-16 18:38:16.000000000 -0700
-+++ ./src//./net/minecraft/tileentity/TileEntityPiston.java	2013-09-18 22:56:55.000000000 -0700
+--- net/minecraft/tileentity/TileEntityPiston.java
++++ net/minecraft/tileentity/TileEntityPiston.java
 @@ -15,6 +15,7 @@
  {
      private int storedBlockID;
@@ -71,3 +71,18 @@
              }
          }
          else
+@@ -205,6 +225,7 @@
+         this.storedOrientation = par1NBTTagCompound.getInteger("facing");
+         this.lastProgress = this.progress = par1NBTTagCompound.getFloat("progress");
+         this.extending = par1NBTTagCompound.getBoolean("extending");
++        this.storedTileEntityData = par1NBTTagCompound.getCompoundTag("blockTileEntity");
+     }
+ 
+     /**
+@@ -218,5 +239,6 @@
+         par1NBTTagCompound.setInteger("facing", this.storedOrientation);
+         par1NBTTagCompound.setFloat("progress", this.lastProgress);
+         par1NBTTagCompound.setBoolean("extending", this.extending);
++        par1NBTTagCompound.setCompoundTag("blockTileEntity", this.storedTileEntityData);
+     }
+ }
