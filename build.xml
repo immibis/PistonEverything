@@ -47,6 +47,14 @@
 		</exec>
     </target>
     
+    <target name="gen-diff">
+        <exec executable="./diff.sh" osfamily="unix">
+            <arg path="${dir.mcp-clean}/src/minecraft" />
+            <arg path="${dir.source}" />
+            <arg path="patches" />
+        </exec>
+    </target>
+    
     <target name="package">
         <jar destfile="PistonEverything.jar"
              manifest="MANIFEST.MF">
