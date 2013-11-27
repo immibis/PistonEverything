@@ -16,7 +16,9 @@
     <target name="prep">
         <!-- TODO: juggle a clean copy of the source and only inject our modified files in at runtime -->
 		<copy todir="${dir.mcp}/src/minecraft" overwrite="true">
-			<fileset dir="${dir.source}" />
+			<fileset dir="${dir.source}">
+			    <include name="cheeseum/pistoneverything/**.java" /> 
+			</fileset>
 		</copy>
 	</target>
 	
@@ -61,12 +63,6 @@
 			<fileset dir="${dir.mcp}/reobf/minecraft">
 			    <include name="cheeseum/**/*.class"/>
 			</fileset>
-			<mappedresources>
-			    <fileset dir="${dir.mcp}/reobf/minecraft">
-			        <include name="*.class" />
-			    </fileset>
-			    <packagemapper from="*.class" to="patchedclass/*.class"/>
-			</mappedresources>            
         </jar>
     </target>
    
@@ -74,7 +70,7 @@
         <antcall target="clean" />
         <antcall target="prep" />
         <antcall target="recompile" />
-        <antcall target="reobfuscate" />
+        <antcall target="reobfuscate-srg" />
         <antcall target="package" />
     </target>
 </project>

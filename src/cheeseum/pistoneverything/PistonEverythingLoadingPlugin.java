@@ -6,7 +6,7 @@ import java.util.Map;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin.MCVersion;
 
-@MCVersion(value = "1.6.2")
+//@MCVersion(value = "1.6.4")
 public class PistonEverythingLoadingPlugin implements IFMLLoadingPlugin {
 	
 	public static File jarLocation;
@@ -19,7 +19,7 @@ public class PistonEverythingLoadingPlugin implements IFMLLoadingPlugin {
 
 	@Override
 	public String[] getASMTransformerClass() {
-		return new String[]{ PistonEverythingTransformer.class.getName() };
+		return new String[]{ PistonEverythingTransformerASM.class.getName() };
 	}
 
 	@Override

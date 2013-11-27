@@ -1,6 +1,15 @@
 --- net/minecraft/block/BlockPistonBase.java
 +++ net/minecraft/block/BlockPistonBase.java
-@@ -10,6 +10,7 @@
+@@ -3,6 +3,8 @@
+ import cpw.mods.fml.relauncher.Side;
+ import cpw.mods.fml.relauncher.SideOnly;
+ import java.util.List;
++
++import cheeseum.pistoneverything.PistonEverything;
+ import net.minecraft.block.material.Material;
+ import net.minecraft.client.renderer.texture.IconRegister;
+ import net.minecraft.creativetab.CreativeTabs;
+@@ -10,6 +12,7 @@
  import net.minecraft.entity.EntityLivingBase;
  import net.minecraft.entity.player.EntityPlayer;
  import net.minecraft.item.ItemStack;
@@ -8,20 +17,17 @@
  import net.minecraft.tileentity.TileEntity;
  import net.minecraft.tileentity.TileEntityPiston;
  import net.minecraft.util.AxisAlignedBB;
-@@ -267,8 +268,15 @@
+@@ -267,8 +270,13 @@
                      par2 += Facing.offsetsXForSide[par6];
                      par3 += Facing.offsetsYForSide[par6];
                      par4 += Facing.offsetsZForSide[par6];
-+                    NBTTagCompound teData = new NBTTagCompound();
-+                    TileEntity te = par1World.getBlockTileEntity(j1,  k1, l1);
-+                    if (te != null) {
-+                    	te.writeToNBT(teData);
-+                    }
 +                    
++                    NBTTagCompound teData = PistonEverything.getBlockTileEntityData(par1World, j1, k1, l1);
 +                    par1World.removeBlockTileEntity(j1, k1, l1);
++                    
                      par1World.setBlock(par2, par3, par4, Block.pistonMoving.blockID, j2, 3);
--                    par1World.setBlockTileEntity(par2, par3, par4, BlockPistonMoving.getTileEntity(i2, j2, par6, false, false));
-+                    par1World.setBlockTileEntity(par2, par3, par4, BlockPistonMoving.getTileEntity(i2, j2, par6, false, false, teData));
+                     par1World.setBlockTileEntity(par2, par3, par4, BlockPistonMoving.getTileEntity(i2, j2, par6, false, false));
++                    ((TileEntityPiston) par1World.getBlockTileEntity(par2, par3, par4)).storeTileEntity(teData);
                      par1World.setBlockToAir(j1, k1, l1);
                  }
                  else if (!flag1)
@@ -35,26 +41,23 @@
          }
      }
  
-@@ -558,7 +567,13 @@
+@@ -558,7 +567,10 @@
                  j3 = k1 - Facing.offsetsZForSide[par5];
                  int k3 = par1World.getBlockId(l2, i3, j3);
                  int l3 = par1World.getBlockMetadata(l2, i3, j3);
-+                NBTTagCompound teData = new NBTTagCompound(); 
-+                TileEntity te = par1World.getBlockTileEntity(l2, i3, j3);
-+                if (te != null) {
-+                	te.writeToNBT(teData);
-+                }
- 
+-
++                
++                NBTTagCompound teData = PistonEverything.getBlockTileEntityData(par1World, l2, i3, j3);
 +                par1World.removeBlockTileEntity(l2, i3, j3);
++                
                  if (k3 == this.blockID && l2 == par2 && i3 == par3 && j3 == par4)
                  {
                      par1World.setBlock(i1, j1, k1, Block.pistonMoving.blockID, par5 | (this.isSticky ? 8 : 0), 4);
-@@ -567,7 +582,7 @@
-                 else
+@@ -568,6 +580,7 @@
                  {
                      par1World.setBlock(i1, j1, k1, Block.pistonMoving.blockID, l3, 4);
--                    par1World.setBlockTileEntity(i1, j1, k1, BlockPistonMoving.getTileEntity(k3, l3, par5, true, false));
-+                    par1World.setBlockTileEntity(i1, j1, k1, BlockPistonMoving.getTileEntity(k3, l3, par5, true, false, teData)); 
+                     par1World.setBlockTileEntity(i1, j1, k1, BlockPistonMoving.getTileEntity(k3, l3, par5, true, false));
++                    ((TileEntityPiston) par1World.getBlockTileEntity(i1, j1, k1)).storeTileEntity(teData);
                  }
  
                  aint[k2++] = k3;

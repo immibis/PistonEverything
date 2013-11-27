@@ -1,6 +1,15 @@
 --- net/minecraft/tileentity/TileEntityPiston.java
 +++ net/minecraft/tileentity/TileEntityPiston.java
-@@ -15,6 +15,7 @@
+@@ -5,6 +5,8 @@
+ import java.util.ArrayList;
+ import java.util.Iterator;
+ import java.util.List;
++
++import cheeseum.pistoneverything.PistonEverything;
+ import net.minecraft.block.Block;
+ import net.minecraft.entity.Entity;
+ import net.minecraft.nbt.NBTTagCompound;
+@@ -15,6 +17,7 @@
  {
      private int storedBlockID;
      private int storedMetadata;
@@ -8,70 +17,44 @@
  
      /** the side the front of the piston is on */
      private int storedOrientation;
-@@ -30,13 +31,19 @@
- 
-     public TileEntityPiston() {}
- 
--    public TileEntityPiston(int par1, int par2, int par3, boolean par4, boolean par5)
-+    public TileEntityPiston(int par1, int par2, int par3, boolean par4, boolean par5) {
-+    	this(par1, par2, par3, par4, par5, new NBTTagCompound());
-+    }
-+    
-+    public TileEntityPiston(int par1, int par2, int par3, boolean par4, boolean par5, NBTTagCompound par6)
-     {
-         this.storedBlockID = par1;
-         this.storedMetadata = par2;
-         this.storedOrientation = par3;
-         this.extending = par4;
+@@ -39,6 +42,11 @@
          this.shouldHeadBeRendered = par5;
-+        
-+        this.storedTileEntityData = par6;
      }
  
-     public int getStoredBlockID()
-@@ -139,6 +146,21 @@
-         return this.extending ? (this.getProgress(par1) - 1.0F) * (float)Facing.offsetsZForSide[this.storedOrientation] : (1.0F - this.getProgress(par1)) * (float)Facing.offsetsZForSide[this.storedOrientation];
-     }
- 
-+    public void restoreStoredBlock () {
-+    	this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
-+        this.worldObj.setBlockMetadataWithNotify(this.xCoord, this.yCoord, this.zCoord, this.storedMetadata, 3);
-+        this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
-+
-+        if (!this.storedTileEntityData.hasNoTags()) {
-+        	this.storedTileEntityData.setInteger("x", this.xCoord);
-+        	this.storedTileEntityData.setInteger("y", this.yCoord);
-+        	this.storedTileEntityData.setInteger("z", this.zCoord);
-+        	TileEntity te = this.worldObj.getBlockTileEntity(this.xCoord, this.yCoord, this.zCoord);
-+        	te.readFromNBT(this.storedTileEntityData);
-+        	te.blockMetadata = this.storedMetadata;
-+        }                
++    public void storeTileEntity(NBTTagCompound tileEntityData)
++    {
++    	this.storedTileEntityData = tileEntityData;
 +    }
 +    
-     /**
-      * removes a pistons tile entity (and if the piston is moving, stops it)
-      */
-@@ -152,8 +174,7 @@
+     public int getStoredBlockID()
+     {
+         return this.storedBlockID;
+@@ -152,6 +160,11 @@
  
              if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) == Block.pistonMoving.blockID)
              {
--                this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
--                this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
-+            	this.restoreStoredBlock();                
++            	if (this.storedTileEntityData != null) {
++                	PistonEverything.restoreStoredPistonBlock(
++                			this.worldObj, this.xCoord, this.yCoord, this.zCoord,
++                			this.storedBlockID, this.storedMetadata, this.storedTileEntityData);
++                }
+                 this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
+                 this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
              }
-         }
-     }
-@@ -174,8 +195,7 @@
+@@ -174,6 +187,12 @@
  
              if (this.worldObj.getBlockId(this.xCoord, this.yCoord, this.zCoord) == Block.pistonMoving.blockID)
              {
--                this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
--                this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
-+                this.restoreStoredBlock();
++                if (this.storedTileEntityData != null) {
++                	PistonEverything.restoreStoredPistonBlock(
++                			this.worldObj, this.xCoord, this.yCoord, this.zCoord,
++                			this.storedBlockID, this.storedMetadata, this.storedTileEntityData);
++                }
++                
+                 this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
+                 this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
              }
-         }
-         else
-@@ -205,6 +225,7 @@
+@@ -205,6 +224,7 @@
          this.storedOrientation = par1NBTTagCompound.getInteger("facing");
          this.lastProgress = this.progress = par1NBTTagCompound.getFloat("progress");
          this.extending = par1NBTTagCompound.getBoolean("extending");
@@ -79,7 +62,7 @@
      }
  
      /**
-@@ -218,5 +239,6 @@
+@@ -218,5 +238,6 @@
          par1NBTTagCompound.setInteger("facing", this.storedOrientation);
          par1NBTTagCompound.setFloat("progress", this.lastProgress);
          par1NBTTagCompound.setBoolean("extending", this.extending);
