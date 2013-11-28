@@ -22,17 +22,18 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
+import cheeseum.pistoneverything.PistonEverythingObfuscationMapper.MethodData;
 import cpw.mods.fml.common.FMLLog;
-import cpw.mods.fml.common.asm.transformers.deobf.FMLDeobfuscatingRemapper;
+import cpw.mods.fml.relauncher.FMLInjectionData;
 
 public class PistonEverythingTransformerASM implements IClassTransformer, Opcodes
 {
-
-	private FMLDeobfuscatingRemapper remapper = FMLDeobfuscatingRemapper.INSTANCE;
+	private PistonEverythingObfuscationMapper obfMapper;
 	
-	private String getClassMapping (String className)
+	public PistonEverythingTransformerASM ()
 	{
-		return remapper.unmap(className);
+		obfMapper = new PistonEverythingObfuscationMapper(PistonEverythingLoadingPlugin.runtimeDeobfuscationEnabled);
+		obfMapper.loadMappings("/deobfuscation_data-" + FMLInjectionData.data()[4] + ".lzma");
 	}
 	
 	private byte[] transformTileEntityPiston(String className, byte[] in)
@@ -40,10 +41,19 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		ClassNode cNode = new ClassNode();
 		ClassReader cr = new ClassReader(in);
 		cr.accept(cNode, 0);
-	
-		// TODO: field and method mapping
-		String c_World = getClassMapping("net/minecraft/world/World");
-		String c_NBTTagCompound = getClassMapping("net/minecraft/nbt/NBTTagCompound"); 
+		
+		// class, field, and method mappings
+		String c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
+		String c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
+		String f_worldObj = obfMapper.getFieldMapping("worldObj", "field_70331_k");
+		String f_xCoord = obfMapper.getFieldMapping("xCoord", "field_70329_l");
+		String f_yCoord = obfMapper.getFieldMapping("yCoord", "field_70333_m");
+		String f_zCoord = obfMapper.getFieldMapping("zCoord", "field_70327_n");
+		String f_storedBlockID = obfMapper.getFieldMapping("storedBlockID", "field_70348_a");
+		String f_storedMetadata = obfMapper.getFieldMapping("storedMetadata", "field_70346_b");
+		MethodData m_removeBlockTileEntity = obfMapper.getMethodMapping("removeBlockTileEntity", "func_72932_q", "(III)V");
+		MethodData m_clearPistonTileEntity = obfMapper.getMethodMapping("clearPistonTileEntity", "func_70339_i", "()V");
+		MethodData m_updateEntity = obfMapper.getMethodMapping("updateEntity", "func_70316_g", "()V");
 		
 		cNode.fields.add(new FieldNode(ACC_PRIVATE, "storedTileEntityData", "Lnet/minecraft/nbt/NBTTagCompound;", null, null));
 		
@@ -291,7 +301,8 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 	@Override
 	public byte[] transform(String arg0, String arg1, byte[] arg2)
 	{
-		String className = remapper.map(arg0).replace('/','.');
+		//String className = remapper.map(arg0).replace('/','.');
+		String className = arg1;
 		if (className.equals("net.minecraft.tileentity.TileEntityPiston")) 
 		{
 			FMLLog.info("Patching class %s!", className);
