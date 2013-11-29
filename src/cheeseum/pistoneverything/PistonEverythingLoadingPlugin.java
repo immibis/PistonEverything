@@ -3,6 +3,7 @@ package cheeseum.pistoneverything;
 import java.io.File;
 import java.util.Map;
 
+import cpw.mods.fml.relauncher.FMLInjectionData;
 import cpw.mods.fml.relauncher.IFMLLoadingPlugin;
 
 //@MCVersion(value = "1.6.4")
@@ -35,6 +36,10 @@ public class PistonEverythingLoadingPlugin implements IFMLLoadingPlugin {
 	@Override
 	public void injectData(Map<String, Object> data) {
 		jarLocation = (File) data.get("coremodLocation");
-		runtimeDeobfuscationEnabled = (boolean) data.get("runtimeDeobfuscationEnabled");
+		runtimeDeobfuscationEnabled = (Boolean)data.get("runtimeDeobfuscationEnabled");
+		
+		//XXX: initializing this here is far from ideal, but it works
+		PistonEverythingTransformerASM.obfMapper = new PistonEverythingObfuscationMapper(runtimeDeobfuscationEnabled);
+		PistonEverythingTransformerASM.obfMapper.loadMappings("/deobfuscation_data-" + FMLInjectionData.data()[4] + ".lzma");
 	}
 }

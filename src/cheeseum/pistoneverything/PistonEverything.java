@@ -2,7 +2,6 @@ package cheeseum.pistoneverything;
 
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityPiston;
 import net.minecraft.world.World;
 
 public class PistonEverything

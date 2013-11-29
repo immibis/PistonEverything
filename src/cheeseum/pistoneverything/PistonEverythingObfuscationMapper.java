@@ -78,7 +78,7 @@ public class PistonEverythingObfuscationMapper {
 		if (!runtimeDeobfuscationEnabled)
 			return mcpName;
 		
-		return classMap.containsKey(srgName) ? classMap.get(srgName) : srgName;
+		return classMap.containsKey(mcpName) ? classMap.get(mcpName) : mcpName;
 	}
 	
 	public String getFieldMapping (String mcpName, String srgName)
