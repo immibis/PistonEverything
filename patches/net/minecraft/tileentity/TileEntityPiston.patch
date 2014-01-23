@@ -54,18 +54,24 @@
                  this.worldObj.setBlock(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID, this.storedMetadata, 3);
                  this.worldObj.notifyBlockOfNeighborChange(this.xCoord, this.yCoord, this.zCoord, this.storedBlockID);
              }
-@@ -205,6 +224,7 @@
+@@ -205,6 +224,10 @@
          this.storedOrientation = par1NBTTagCompound.getInteger("facing");
          this.lastProgress = this.progress = par1NBTTagCompound.getFloat("progress");
          this.extending = par1NBTTagCompound.getBoolean("extending");
-+        this.storedTileEntityData = par1NBTTagCompound.getCompoundTag("blockTileEntity");
++        if (par1NBTTagCompound.hasKey("blockTileEntity"))
++        {
++        	this.storedTileEntityData = par1NBTTagCompound.getCompoundTag("blockTileEntity");
++        }
      }
  
      /**
-@@ -218,5 +238,6 @@
+@@ -218,5 +241,9 @@
          par1NBTTagCompound.setInteger("facing", this.storedOrientation);
          par1NBTTagCompound.setFloat("progress", this.lastProgress);
          par1NBTTagCompound.setBoolean("extending", this.extending);
-+        par1NBTTagCompound.setCompoundTag("blockTileEntity", this.storedTileEntityData);
++        if (this.storedTileEntityData != null)
++        {
++        	par1NBTTagCompound.setCompoundTag("blockTileEntity", this.storedTileEntityData);
++        }
      }
  }
