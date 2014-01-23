@@ -36,7 +36,7 @@
              }
  
 -            return !par1World.blockHasTileEntity(par2, par3, par4);
-+            return true;
++            return PistonEverything.isBlockWhitelisted(par0, par1World, par2, par3, par4);
 +            //return !par1World.blockHasTileEntity(par2, par3, par4);
          }
      }

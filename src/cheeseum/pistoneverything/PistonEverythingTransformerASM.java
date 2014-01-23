@@ -55,7 +55,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		ClassReader cr = new ClassReader(in);
 		cr.accept(cNode, 0);
 		
-		// class, field, and method mappings
+		// class, field, and method mappings from mcp
 		String c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
 		String c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
 		String c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
@@ -373,13 +373,18 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					
 					if (insn.equals(node))
 					{
-						FMLLog.finest("removing TileEntity check");
-						// inject return true
-						// TODO: inject black/whitelist code
-						newInsns.add(new InsnNode(ICONST_1));
+						FMLLog.finest("injecting block whitelist check");
+						// inject black/whitelist code
+						newInsns.add(new VarInsnNode(ILOAD, 0));
+						newInsns.add(new VarInsnNode(ALOAD, 1));
+						newInsns.add(new VarInsnNode(ILOAD, 2));
+						newInsns.add(new VarInsnNode(ILOAD, 3));
+						newInsns.add(new VarInsnNode(ILOAD, 4));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "isBlockWhitelisted", String.format("(I%sIII)Z", fieldDesc(c_World))));
 						newInsns.add(new InsnNode(IRETURN));
 						
 						// throw out the rest of the tileentity check
+						FMLLog.finest("removing TileEntity check");
 						break;
 					}
 				}
