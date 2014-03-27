@@ -151,6 +151,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					
 					newInsns.add(insn);
 				}
+				mn.instructions = newInsns;
 			}
 
 			if (methodEquals(mn, m_writeToNBT))
@@ -177,6 +178,8 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					
 					newInsns.add(insn);
 				}
+
+				mn.instructions = newInsns;
 			}
 			
 		}
