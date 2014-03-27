@@ -1,6 +1,7 @@
 <?xml version="1.0" ?>
 <project name="Piston Everything" default="build">
     <property name="minecraft.version" value="1.6.2" />
+    <property name="build.version" value="0.9" />
     <property name="dir.mcp" location="../../${minecraft.version}/forge-dirty/mcp" />
     <property name="dir.mcp-clean" location="../../${minecraft.version}/forge/mcp" />
     <property name="dir.source" location="src" />

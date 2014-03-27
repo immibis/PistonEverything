@@ -12,7 +12,6 @@ public class PistonEverythingLoadingPlugin implements IFMLLoadingPlugin {
 	public static File jarLocation;
 	public static boolean runtimeDeobfuscationEnabled;
 	
-	@Override
 	@Deprecated
 	public String[] getLibraryRequestClass() {
 		return null;
@@ -25,7 +24,7 @@ public class PistonEverythingLoadingPlugin implements IFMLLoadingPlugin {
 
 	@Override
 	public String getModContainerClass() {
-		return null;
+		return PistonEverythingMod.class.getName();
 	}
 
 	@Override

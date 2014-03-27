@@ -9,7 +9,32 @@ import net.minecraft.world.World;
 
 public final class PistonEverything
 {
-	private static List<Integer> blockWhitelist = new ArrayList<Integer>();
+	
+	protected static class WhitelistData {
+		int id;
+		int meta;
+		
+		public WhitelistData (int id, int meta) {
+			this.id = id;
+			this.meta = meta;
+		}
+		
+		@Override
+		public boolean equals (Object o) {
+			if (o instanceof WhitelistData) {
+				WhitelistData d = (WhitelistData)o;
+				return (d.id == this.id && d.meta == this.meta);
+			}
+			
+			return false;
+		}
+		
+		@Override
+		public int hashCode () {
+			return id + meta;
+		}
+	}
+	private static List<WhitelistData> blockWhitelist = new ArrayList<WhitelistData>();
 	
 	// TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
 	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, int block, int meta, NBTTagCompound tileEntityData)
@@ -18,12 +43,18 @@ public final class PistonEverything
 	    worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, meta, 3);
 	    worldObj.notifyBlockOfNeighborChange(xCoord, yCoord, zCoord, block);
 	
-    	tileEntityData.setInteger("x", xCoord);
+	    TileEntity te = TileEntity.createAndLoadEntity(tileEntityData);
+	    te.xCoord = xCoord;
+	    te.yCoord = yCoord;
+	    te.zCoord = zCoord;
+	    worldObj.setBlockTileEntity(xCoord, yCoord, zCoord, te);
+/*    	tileEntityData.setInteger("x", xCoord);
     	tileEntityData.setInteger("y", yCoord);
     	tileEntityData.setInteger("z", zCoord);
     	TileEntity te = worldObj.getBlockTileEntity(xCoord, yCoord, zCoord);
     	te.readFromNBT(tileEntityData);
     	te.blockMetadata = meta;
+*/
 	}
 
 	public static NBTTagCompound getBlockTileEntityData(World worldObj, int x, int y, int z)
@@ -40,12 +71,12 @@ public final class PistonEverything
 	
 	public static void whitelistBlock (int block, int meta)
 	{
-		blockWhitelist.add((block << 4) ^ meta);
+		blockWhitelist.add(new WhitelistData(block, meta));
 	}
 	
 	public static boolean isBlockWhitelisted (int block, int meta)
 	{
-		return blockWhitelist.contains((block << 4) ^ meta);
+		return blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
 	}
 	
 	// The odd arguments are just to cut down on the number of World methods we have to track in the transformer
@@ -55,7 +86,6 @@ public final class PistonEverything
 		{
 			return isBlockWhitelisted(block, world.getBlockMetadata(x, y, z));
 		} 
-		
 		return true;
 	}
 }
