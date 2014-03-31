@@ -1,0 +1,16 @@
+[
+{
+  "modid": "PistonEverything",
+  "name": "Piston Everything",
+  "description": "Lets you push more things with pistons.",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authors": ["Cheeseum"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
