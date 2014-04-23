@@ -40,6 +40,7 @@ public final class PistonEverything
     
     public static Icon crateIcon;
 	private static List<WhitelistData> blockWhitelist = new ArrayList<WhitelistData>();
+    public static boolean doWhitelist;
 	
 	// TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
 	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, int block, int meta, NBTTagCompound tileEntityData)
@@ -74,7 +75,11 @@ public final class PistonEverything
 	
 	public static boolean isBlockWhitelisted (int block, int meta)
 	{
-		return blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
+		if (doWhitelist)
+		{
+		    return blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
+		}
+		return true;
 	}
 	
 	// The odd arguments are just to cut down on the number of World methods we have to track in the transformer

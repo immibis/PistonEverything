@@ -52,7 +52,8 @@ public class PistonEverythingMod extends DummyModContainer {
         	"54",
         	"130"
         };
-        
+       
+        PistonEverything.doWhitelist = config.get("options", "whitelist", true).getBoolean(true);
         Property whitelist = config.get("filter", "whitelist", defaultWhitelist, "format is 'blockid: meta' or just 'blockid' to match any metadata");
         
         if (whitelist.isList()) {
