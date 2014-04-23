@@ -409,6 +409,57 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		return cw.toByteArray();
 	}
 	
+	private byte[] transformTileEntityRendererPiston(String className, byte[] in)
+    {
+        ClassNode cNode = new ClassNode();
+        ClassReader cr = new ClassReader(in);
+        cr.accept(cNode, 0);
+        
+        // class, field, and method mappings
+        String c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
+        String c_RenderBlocks = obfMapper.getClassMapping("net/minecraft/client/renderer/RenderBlocks", "RenderBlocks");
+        MethodData m_renderPiston = obfMapper.getMethodMapping("renderPiston", "func_76903_a", "(Lnet/minecraft/tileentity/TileEntityPiston;DDDF)V");
+        MethodData m_renderBlockAllFaces = obfMapper.getMethodMapping("renderBlockAllFaces", "func_78583_a", "(Lnet/minecraft/block/Block;III)V");
+        
+        for (MethodNode mn : cNode.methods)
+        {
+            if (methodEquals(mn, m_renderPiston))
+            {
+                FMLLog.finest("patching renderPiston..");
+                ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
+              
+                InsnList newInsns = new InsnList();
+                while (it.hasNext())
+                {
+                    AbstractInsnNode insn = it.next();
+                    
+                    if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_renderBlockAllFaces))
+                    {
+                        FMLLog.finest("Replacing block render call");
+                        insn = new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "renderPistonBlock", String.format("(%s%sIII)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block)));
+                    }
+
+                    newInsns.add(insn);
+                }
+
+                mn.instructions = newInsns;
+            }
+        }
+        
+        ClassWriter cw = new ClassWriter(COMPUTE_FRAMES);
+        cNode.accept(cw);
+        try {
+            DataOutputStream dout = new DataOutputStream(new FileOutputStream(new File("/tmp", className + ".class")));
+            dout.write(cw.toByteArray());
+            dout.flush();
+            dout.close();
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return cw.toByteArray();
+    }
+	
 	@Override
 	public byte[] transform(String arg0, String arg1, byte[] arg2)
 	{
@@ -423,6 +474,11 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		{
 			FMLLog.info("Patching class %s!", className);
 			return transformBlockPistonBase(className, arg2);
+		}
+		else if (className.equals("net.minecraft.client.renderer.tileentity.TileEntityRendererPiston"))
+		{
+		    FMLLog.info("Patching class %s!", className);
+		    return transformTileEntityRendererPiston(className, arg2);
 		}
 		
 		return arg2;

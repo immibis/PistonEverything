@@ -3,14 +3,17 @@ package cheeseum.pistoneverything;
 import java.util.ArrayList;
 import java.util.List;
 
+import net.minecraft.block.Block;
+import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityPiston;
+import net.minecraft.util.Icon;
 import net.minecraft.world.World;
 
 public final class PistonEverything
 {
-	
-	protected static class WhitelistData {
+    protected static class WhitelistData {
 		int id;
 		int meta;
 		
@@ -34,6 +37,8 @@ public final class PistonEverything
 			return id + meta;
 		}
 	}
+    
+    public static Icon crateIcon;
 	private static List<WhitelistData> blockWhitelist = new ArrayList<WhitelistData>();
 	
 	// TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
@@ -80,5 +85,14 @@ public final class PistonEverything
 			return isBlockWhitelisted(block, world.getBlockMetadata(x, y, z));
 		} 
 		return true;
+	}
+	
+	public static void renderPistonBlock (RenderBlocks blockRenderer, Block block, int x, int y, int z) {
+	    if (block.hasTileEntity(0)) {
+	        //blockRenderer.renderBlockUsingTexture(Block.obsidian, x, y, z, crateIcon);
+	        blockRenderer.renderBlockAllFaces(Block.obsidian, x, y, z);
+	    } else {
+	        blockRenderer.renderBlockAllFaces(block, x, y, z);
+	    }
 	}
 }
