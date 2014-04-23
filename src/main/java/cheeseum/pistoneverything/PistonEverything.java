@@ -38,7 +38,7 @@ public final class PistonEverything
 		}
 	}
     
-    public static Icon crateIcon;
+    //public static Icon crateIcon;
 	private static List<WhitelistData> blockWhitelist = new ArrayList<WhitelistData>();
     public static boolean doWhitelist;
 	

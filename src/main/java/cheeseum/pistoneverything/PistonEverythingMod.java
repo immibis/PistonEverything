@@ -77,10 +77,12 @@ public class PistonEverythingMod extends DummyModContainer {
 	
 	// TODO: fix assets dir for custom crate texture
 	
+	/*
 	@ForgeSubscribe
 	public void texStitchPre(TextureStitchEvent.Pre event) {
 	    if (event.map.textureType == 0) {
 	        PistonEverything.crateIcon = event.map.registerIcon("pistoneverything:crate");
 	    }
 	}
+	*/
 }
