@@ -7,6 +7,7 @@ import net.minecraft.block.Block;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
+import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityPiston;
 import net.minecraft.util.Icon;
 import net.minecraft.world.World;
@@ -75,11 +76,13 @@ public final class PistonEverything
 	
 	public static boolean isBlockWhitelisted (int block, int meta)
 	{
-		if (doWhitelist)
-		{
-		    return blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
+		boolean isWhiteListed = blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
+		
+		if (doWhitelist) {
+		    return isWhiteListed;
+		} else { // use as blacklist
+		    return !isWhiteListed;
 		}
-		return true;
 	}
 	
 	// The odd arguments are just to cut down on the number of World methods we have to track in the transformer

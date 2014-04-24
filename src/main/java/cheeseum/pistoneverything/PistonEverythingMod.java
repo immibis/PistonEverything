@@ -40,21 +40,17 @@ public class PistonEverythingMod extends DummyModContainer {
 	
 	@Subscribe
     public void preInit(FMLPreInitializationEvent event) {
-	    MinecraftForge.EVENT_BUS.register(this);
+	    //MinecraftForge.EVENT_BUS.register(this);
 	    
 		File configFile = event.getSuggestedConfigurationFile();
         
 		this.config = new Configuration(configFile);
         this.config.load();
        
-        // initialize the default whitelist with some vanilla blocks
-        String[] defaultWhitelist = {
-        	"54",
-        	"130"
-        };
+        String[] defaultWhitelist = {};
        
-        PistonEverything.doWhitelist = config.get("options", "whitelist", true, "toggles the whitelist (intended for testing purposes)").getBoolean(true);
-        Property whitelist = config.get("filter", "whitelist", defaultWhitelist, "format is 'blockid: meta' or just 'blockid' to match any metadata");
+        PistonEverything.doWhitelist = config.get(Configuration.CATEGORY_GENERAL, "whitelist", false, "true for whitelist, false for blacklist (intended for testing purposes)").getBoolean(true);
+        Property whitelist = config.get(Configuration.CATEGORY_GENERAL, "filter", defaultWhitelist, "white/blacklist, one entry per line, format is 'blockid: meta' or just 'blockid' to match any metadata");
         
         if (whitelist.isList()) {
         	for (String entry : whitelist.getStringList()) {
