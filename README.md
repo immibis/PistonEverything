@@ -1,5 +1,8 @@
 # Piston Everything
-_Minecraft coremod that enables vanilla pistons to push additional blocks_
+**Minecraft coremod that enables vanilla pistons to push additional blocks**
+
+(c) Cheeseum 2014  
+*Released under the terms of the LGPL v3, see COPYING files for details.*
 
 ## General
 What this mod intends to do:
