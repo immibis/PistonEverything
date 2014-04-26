@@ -48,13 +48,14 @@ public final class PistonEverything
 	{
 	    worldObj.setBlock(xCoord, yCoord, zCoord, block);
 	    worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, meta, 3);
-	    worldObj.notifyBlockOfNeighborChange(xCoord, yCoord, zCoord, block);
 	
 	    TileEntity te = TileEntity.createAndLoadEntity(tileEntityData);
 	    te.xCoord = xCoord;
 	    te.yCoord = yCoord;
 	    te.zCoord = zCoord;
 	    worldObj.setBlockTileEntity(xCoord, yCoord, zCoord, te);
+
+	    worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, block);
 	}
 
 	public static NBTTagCompound getBlockTileEntityData(World worldObj, int x, int y, int z)
