@@ -2,7 +2,7 @@
 **Minecraft coremod that enables vanilla pistons to push additional blocks**
 
 (c) Cheeseum 2014  
-*Released under the terms of the LGPL v3, see COPYING files for details.*
+*Released under the terms of the GNU LGPL v3, see LICENSE and COPYING files for details.*
 
 ## General
 What this mod intends to do:

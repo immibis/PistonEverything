@@ -41,4 +41,10 @@ processResources
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
+
+    from('.') {
+        include 'LICENSE'
+        include 'COPYING'
+        include 'COPYING.LESSER'
+    }
 }
