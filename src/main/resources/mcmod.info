@@ -5,7 +5,7 @@
   "description": "Lets you push more things with pistons.",
   "version": "${version}",
   "mcversion": "${mcversion}",
-  "url": "",
+  "url": "https://github.com/Cheeseum/PistonEverything",
   "updateUrl": "",
   "authors": ["Cheeseum"],
   "credits": "",
