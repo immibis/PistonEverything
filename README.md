@@ -4,6 +4,8 @@
 (c) Cheeseum 2014  
 *Released under the terms of the GNU LGPL v3, see LICENSE and COPYING files for details.*
 
+**MCF Thread**: http://www.minecraftforum.net/topic/2607950-
+
 ## General
 What this mod intends to do:
 * Let you push blocks with tile-entities using pistons
