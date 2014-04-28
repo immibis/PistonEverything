@@ -1,4 +1,4 @@
-package cheeseum.pistoneverything;
+package com.cheeseum.pistoneverything;
 
 import java.io.File;
 import java.net.URISyntaxException;

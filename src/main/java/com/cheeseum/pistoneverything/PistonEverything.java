@@ -1,4 +1,4 @@
-package cheeseum.pistoneverything;
+package com.cheeseum.pistoneverything;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public final class PistonEverything
 	{
 	    worldObj.setBlock(xCoord, yCoord, zCoord, block);
 	    worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, meta, 3);
-	
+	    
 	    TileEntity te = TileEntity.createAndLoadEntity(tileEntityData);
 	    te.xCoord = xCoord;
 	    te.yCoord = yCoord;

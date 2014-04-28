@@ -13,7 +13,7 @@ buildscript {
 
 apply plugin: 'forge'
 
-version = "1.0.1"
+version = "1.0.2"
 group= "com.cheeseum.pistoneverything" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PistonEverything-mc1.6.X"
 
@@ -23,7 +23,7 @@ minecraft {
 
 jar {
     manifest {
-        attributes("FMLCorePlugin": "cheeseum.pistoneverything.PistonEverythingLoadingPlugin")
+        attributes("FMLCorePlugin": "com.cheeseum.pistoneverything.PistonEverythingLoadingPlugin")
     }
 }
 

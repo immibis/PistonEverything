@@ -1,4 +1,4 @@
-package cheeseum.pistoneverything;
+package com.cheeseum.pistoneverything;
 
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 
@@ -26,7 +26,8 @@ import org.objectweb.asm.tree.MethodNode;
 import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
-import cheeseum.pistoneverything.PistonEverythingObfuscationMapper.MethodData;
+import com.cheeseum.pistoneverything.PistonEverythingObfuscationMapper.MethodData;
+
 import cpw.mods.fml.common.FMLLog;
 
 public class PistonEverythingTransformerASM implements IClassTransformer, Opcodes
@@ -117,7 +118,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_storedMetadata, "I"));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
 						newInsns.add(l1);
 					}
 					
@@ -228,7 +229,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 8));
 						newInsns.add(new VarInsnNode(ILOAD, 9));
 						newInsns.add(new VarInsnNode(ILOAD, 10));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
 						newInsns.add(new VarInsnNode(ASTORE, 14));
 
 						newInsns.add(new VarInsnNode(ALOAD, 1));
@@ -296,7 +297,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 14));
 						newInsns.add(new VarInsnNode(ILOAD, 15));
 						newInsns.add(new VarInsnNode(ILOAD, 16));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
 						newInsns.add(new VarInsnNode(ASTORE, 19));
 
 						newInsns.add(new VarInsnNode(ALOAD, 1));
@@ -383,7 +384,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 2));
 						newInsns.add(new VarInsnNode(ILOAD, 3));
 						newInsns.add(new VarInsnNode(ILOAD, 4));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "isBlockWhitelisted", String.format("(I%sIII)Z", fieldDesc(c_World))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "isBlockWhitelisted", String.format("(I%sIII)Z", fieldDesc(c_World))));
 						newInsns.add(new InsnNode(IRETURN));
 						
 						// throw out the rest of the tileentity check
@@ -397,15 +398,6 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		
 		ClassWriter cw = new ClassWriter(COMPUTE_FRAMES);
 		cNode.accept(cw);
-		try {
-            DataOutputStream dout = new DataOutputStream(new FileOutputStream(new File("/tmp", className + ".class")));
-            dout.write(cw.toByteArray());
-            dout.flush();
-            dout.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 		return cw.toByteArray();
 	}
 	
@@ -436,7 +428,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                     if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_renderBlockAllFaces))
                     {
                         FMLLog.finest("Replacing block render call");
-                        insn = new MethodInsnNode(INVOKESTATIC, "cheeseum/pistoneverything/PistonEverything", "renderPistonBlock", String.format("(%s%sIII)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block)));
+                        insn = new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "renderPistonBlock", String.format("(%s%sIII)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block)));
                     }
 
                     newInsns.add(insn);
@@ -448,15 +440,6 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
         
         ClassWriter cw = new ClassWriter(COMPUTE_FRAMES);
         cNode.accept(cw);
-        try {
-            DataOutputStream dout = new DataOutputStream(new FileOutputStream(new File("/tmp", className + ".class")));
-            dout.write(cw.toByteArray());
-            dout.flush();
-            dout.close();
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
         return cw.toByteArray();
     }
 	
