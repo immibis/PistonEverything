@@ -87,13 +87,17 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 				while (it.hasNext())
 				{
 					AbstractInsnNode insn = it.next();
+					newInsns.add(insn);
+					
 					if (insn instanceof JumpInsnNode && insn.getOpcode() == IF_ICMPNE)
 					{
+                        FMLLog.finest("injecting restoreStoredPistonBlock");
+
 						// code to restore stored tile entities
 						LabelNode l1 = new LabelNode();
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-						newInsns.add(new JumpInsnNode(IFNULL, l1));
+						newInsns.add(new JumpInsnNode(IFNULL, l1)); //if not null
 						
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_worldObj, fieldDesc(c_World)));
@@ -110,10 +114,9 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
 						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new JumpInsnNode(GOTO, ((JumpInsnNode)insn).label)); // else
 						newInsns.add(l1);
 					}
-					
-					newInsns.add(insn);								
 				}
 				mn.instructions = newInsns;
 			}
@@ -392,6 +395,50 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		return cw.toByteArray();
 	}
 	
+	private byte[] transformBlockPistonMoving(String className, byte[] in)
+    {
+        ClassNode cNode = new ClassNode();
+        ClassReader cr = new ClassReader(in);
+        cr.accept(cNode, 0);
+        
+        String c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
+        MethodData m_setBlockBoundsBasedOnState = obfMapper.getMethodMapping("setBlockBoundsBasedOnState", "func_71902_a", "(Lnet/minecraft/world/IBlockAccess;III)V");
+        MethodData m_hasTileEntity = obfMapper.getMethodMapping("hasTileEntity", "func_71887_s", "()Z"); //depreciated
+        
+        for (MethodNode mn : cNode.methods)
+        {
+            if (methodEquals(mn, m_setBlockBoundsBasedOnState))
+            {
+                FMLLog.finest("patching setBlockBoundsBasedOnState..");
+                ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
+              
+                InsnList newInsns = new InsnList();
+                while (it.hasNext())
+                {
+                    AbstractInsnNode insn = it.next();
+                    newInsns.add(insn);
+                    
+                    // don't calculate block bounds for te providers 
+                    if (insn instanceof JumpInsnNode && insn.getOpcode() == IFNULL)
+                    {
+                        AbstractInsnNode prev = insn.getPrevious();
+                        if (prev != null && prev instanceof VarInsnNode && ((VarInsnNode)prev).var == 6)
+                        {
+                            newInsns.add(new VarInsnNode(ALOAD, 6));
+                            newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_Block, m_hasTileEntity.name, m_hasTileEntity.desc));
+                            newInsns.add(new JumpInsnNode(IFEQ, ((JumpInsnNode)insn).label));
+                        }
+                    }
+                }
+                mn.instructions = newInsns;
+            }
+        }
+        
+        ClassWriter cw = new ClassWriter(COMPUTE_FRAMES);
+        cNode.accept(cw);
+        return cw.toByteArray();
+    }
+	
 	private byte[] transformTileEntityRendererPiston(String className, byte[] in)
     {
         ClassNode cNode = new ClassNode();
@@ -449,6 +496,11 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			FMLLog.info("Patching class %s!", className);
 			return transformBlockPistonBase(className, arg2);
 		}
+		else if (className.equals("net.minecraft.block.BlockPistonMoving"))
+		{
+		    FMLLog.info("Patching class %s!", className);
+		    return transformBlockPistonMoving(className, arg2);
+        }
 		else if (className.equals("net.minecraft.client.renderer.tileentity.TileEntityRendererPiston"))
 		{
 		    FMLLog.info("Patching class %s!", className);

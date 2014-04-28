@@ -45,12 +45,14 @@ public final class PistonEverything
     public static boolean doWhitelist;
 
     public static void storeTileEntity(TileEntityPiston tePiston, NBTTagCompound teData) {
-        Class c = tePiston.getClass();
-        try {
-            Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
-            storedTileEntityData.set(tePiston, teData);
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (teData != null) {
+            Class c = tePiston.getClass();
+            try {
+                Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
+                storedTileEntityData.set(tePiston, teData);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 	
