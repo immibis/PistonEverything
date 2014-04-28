@@ -34,6 +34,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 {
 	// XXX: this is initialized out in the loading plugin and it feels hacky
 	public static PistonEverythingObfuscationMapper obfMapper;
+	private static String c_PistonEverything = "com/cheeseum/pistoneverything/PistonEverything";
 	
 	private String fieldDesc (String c)
 	{
@@ -108,7 +109,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_storedMetadata, "I"));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
 						newInsns.add(l1);
 					}
 					
@@ -219,7 +220,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 8));
 						newInsns.add(new VarInsnNode(ILOAD, 9));
 						newInsns.add(new VarInsnNode(ILOAD, 10));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
 						newInsns.add(new VarInsnNode(ASTORE, 14));
 
 						newInsns.add(new VarInsnNode(ALOAD, 1));
@@ -248,7 +249,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getBlockTileEntity.name, m_getBlockTileEntity.desc));
 						newInsns.add(new TypeInsnNode(CHECKCAST, c_TileEntityPiston));
 						newInsns.add(new VarInsnNode(ALOAD, 14));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
 					}
 				}
 				
@@ -287,7 +288,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 14));
 						newInsns.add(new VarInsnNode(ILOAD, 15));
 						newInsns.add(new VarInsnNode(ILOAD, 16));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "getBlockTileEntityData", String.format("(%sIII)%s", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
 						newInsns.add(new VarInsnNode(ASTORE, 19));
 
 						newInsns.add(new VarInsnNode(ALOAD, 1));
@@ -327,7 +328,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getBlockTileEntity.name, m_getBlockTileEntity.desc));
 						newInsns.add(new TypeInsnNode(CHECKCAST, c_TileEntityPiston));
 						newInsns.add(new VarInsnNode(ALOAD, 19));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
 					}
 					
 				}
@@ -374,7 +375,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 2));
 						newInsns.add(new VarInsnNode(ILOAD, 3));
 						newInsns.add(new VarInsnNode(ILOAD, 4));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "isBlockWhitelisted", String.format("(I%sIII)Z", fieldDesc(c_World))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "isBlockWhitelisted", String.format("(I%sIII)Z", fieldDesc(c_World))));
 						newInsns.add(new InsnNode(IRETURN));
 						
 						// throw out the rest of the tileentity check
@@ -418,7 +419,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                     if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_renderBlockAllFaces))
                     {
                         FMLLog.finest("Replacing block render call");
-                        insn = new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "renderPistonBlock", String.format("(%s%sIII)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block)));
+                        insn = new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "renderPistonBlock", String.format("(%s%sIII)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block)));
                     }
 
                     newInsns.add(insn);
