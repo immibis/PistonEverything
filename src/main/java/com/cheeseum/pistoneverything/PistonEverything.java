@@ -1,5 +1,6 @@
 package com.cheeseum.pistoneverything;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,8 +43,18 @@ public final class PistonEverything
     //public static Icon crateIcon;
 	private static List<WhitelistData> blockWhitelist = new ArrayList<WhitelistData>();
     public static boolean doWhitelist;
+
+    public static void storeTileEntity(TileEntityPiston tePiston, NBTTagCompound teData) {
+        Class c = tePiston.getClass();
+        try {
+            Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
+            storedTileEntityData.set(tePiston, teData);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 	
-	// TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
+    // TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
 	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, int block, int meta, NBTTagCompound tileEntityData)
 	{
 	    worldObj.setBlock(xCoord, yCoord, zCoord, block);
@@ -104,4 +115,5 @@ public final class PistonEverything
 	        blockRenderer.renderBlockAllFaces(block, x, y, z);
 	    }
 	}
+
 }

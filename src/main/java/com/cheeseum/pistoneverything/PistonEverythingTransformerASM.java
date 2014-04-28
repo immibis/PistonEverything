@@ -74,17 +74,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		MethodData m_setCompoundTag = obfMapper.getMethodMapping("setCompoundTag", "func_74766_a", "(Ljava/lang/String;Lnet/minecraft/nbt/NBTTagCompound;)V");
 		MethodData m_hasKey = obfMapper.getMethodMapping("hasKey", "func_74764_b", "(Ljava/lang/String;)Z");
 		
-		cNode.fields.add(new FieldNode(ACC_PRIVATE, "storedTileEntityData", fieldDesc(c_NBTTagCompound), null, null));
-		
-		// storeTileEntity
-		{
-			MethodNode mn = new MethodNode(ACC_PUBLIC, "storeTileEntity", "(" + fieldDesc(c_NBTTagCompound) + ")V", null, null);
-			mn.instructions.add(new VarInsnNode(ALOAD, 0));
-			mn.instructions.add(new VarInsnNode(ALOAD, 1));
-			mn.instructions.add(new FieldInsnNode(PUTFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-			mn.instructions.add(new InsnNode(RETURN));	
-			cNode.methods.add(mn);
-		}
+		cNode.fields.add(new FieldNode(ACC_PUBLIC, "storedTileEntityData", fieldDesc(c_NBTTagCompound), null, null));
 		
 		for (MethodNode mn : cNode.methods)
 		{
@@ -258,7 +248,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getBlockTileEntity.name, m_getBlockTileEntity.desc));
 						newInsns.add(new TypeInsnNode(CHECKCAST, c_TileEntityPiston));
 						newInsns.add(new VarInsnNode(ALOAD, 14));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_TileEntityPiston, "storeTileEntity", String.format("(%s)V", fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
 					}
 				}
 				
@@ -337,7 +327,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getBlockTileEntity.name, m_getBlockTileEntity.desc));
 						newInsns.add(new TypeInsnNode(CHECKCAST, c_TileEntityPiston));
 						newInsns.add(new VarInsnNode(ALOAD, 19));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_TileEntityPiston, "storeTileEntity", String.format("(%s)V", fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, "com/cheeseum/pistoneverything/PistonEverything", "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
 					}
 					
 				}
