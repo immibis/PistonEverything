@@ -447,6 +447,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
         
         // class, field, and method mappings
         String c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
+        String c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
         String c_RenderBlocks = obfMapper.getClassMapping("net/minecraft/client/renderer/RenderBlocks", "RenderBlocks");
         MethodData m_renderPiston = obfMapper.getMethodMapping("renderPiston", "func_76903_a", "(Lnet/minecraft/tileentity/TileEntityPiston;DDDF)V");
         MethodData m_renderBlockAllFaces = obfMapper.getMethodMapping("renderBlockAllFaces", "func_78583_a", "(Lnet/minecraft/block/Block;III)V");
@@ -466,7 +467,9 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                     if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_renderBlockAllFaces))
                     {
                         FMLLog.finest("Replacing block render call");
-                        insn = new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "renderPistonBlock", String.format("(%s%sIII)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block)));
+                        newInsns.add(new VarInsnNode(FLOAD, 8));
+                        newInsns.add(new VarInsnNode(ALOAD, 1));
+                        insn = new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "renderPistonBlock", String.format("(%s%sIIIF%s)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block), fieldDesc(c_TileEntityPiston)));
                     }
 
                     newInsns.add(insn);

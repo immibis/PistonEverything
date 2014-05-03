@@ -5,13 +5,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.minecraft.block.Block;
+import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.Tessellator;
+import net.minecraft.client.renderer.texture.TextureMap;
+import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
-import net.minecraft.tileentity.TileEntityChest;
 import net.minecraft.tileentity.TileEntityPiston;
-import net.minecraft.util.Icon;
 import net.minecraft.world.World;
+
+import org.lwjgl.opengl.GL11;
 
 public final class PistonEverything
 {
@@ -109,13 +113,54 @@ public final class PistonEverything
 		return true;
 	}
 	
-	public static void renderPistonBlock (RenderBlocks blockRenderer, Block block, int x, int y, int z) {
-	    if (block.hasTileEntity(0)) {
-	        //blockRenderer.renderBlockUsingTexture(Block.obsidian, x, y, z, crateIcon);
-	        blockRenderer.renderBlockAllFaces(Block.obsidian, x, y, z);
-	    } else {
+	public static void renderPistonBlock (RenderBlocks blockRenderer, Block block, int x, int y, int z, float parTick, TileEntityPiston te) {
+	    NBTTagCompound teData = null;
+	    
+	    Class c = te.getClass();
+	    try {
+	        Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
+	        teData = (NBTTagCompound) storedTileEntityData.get(te);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    
+	    if (teData != null) {
+	        Tessellator tessellator = Tessellator.instance;
+            TileEntityRenderer ter = TileEntityRenderer.instance;
+	        
+	        // from rendertileentity
+            int i = TileEntityRenderer.instance.worldObj.getLightBrightnessForSkyBlocks(x, y, z, 0);
+            int j = i % 65536;
+            int k = i / 65536;
+            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
+            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+            
+            // offset render coords according to piston progress
+            double renderX = x - ter.staticPlayerX + te.getOffsetX(parTick);
+            double renderY = y - ter.staticPlayerY + te.getOffsetY(parTick);
+            double renderZ = z - ter.staticPlayerZ + te.getOffsetZ(parTick);
+            
+            // FIXME: cache this te somewhere, recreating it here is probably really slow
+	        TileEntity storedTE = TileEntity.createAndLoadEntity(teData);
+	        storedTE.worldObj = ter.instance.worldObj;
+	        storedTE.blockMetadata = te.getBlockMetadata();
+	        storedTE.blockType = Block.blocksList[te.getStoredBlockID()];
+	       
+	        TileEntityRenderer.instance.renderTileEntityAt(storedTE, renderX, renderY, renderZ, 1.0f);
+	       
+	        // re-bind the block texture, very important
+	        ter.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
+	    }
+	   
+	    // render the rest of the block, fallback renders in case something throws a tantrum
+	    try {
 	        blockRenderer.renderBlockAllFaces(block, x, y, z);
+	    } catch (Exception e) {
+	        try {
+	            blockRenderer.renderStandardBlock(block, x, y, z);
+	        } catch (Exception ex) {
+	            blockRenderer.renderStandardBlock(Block.obsidian, x, y, z);
+	        }
 	    }
 	}
-
 }
