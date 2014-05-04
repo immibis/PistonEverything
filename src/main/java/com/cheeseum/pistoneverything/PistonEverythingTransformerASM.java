@@ -60,6 +60,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		// class, field, and method mappings from mcp
 		String c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
 		String c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
+		String c_TileEntity = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntity", "TileEntity");
 		String c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
 		String f_worldObj = obfMapper.getFieldMapping("worldObj", "field_70331_k");
 		String f_xCoord = obfMapper.getFieldMapping("xCoord", "field_70329_l");
@@ -76,6 +77,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		MethodData m_hasKey = obfMapper.getMethodMapping("hasKey", "func_74764_b", "(Ljava/lang/String;)Z");
 		
 		cNode.fields.add(new FieldNode(ACC_PUBLIC, "storedTileEntityData", fieldDesc(c_NBTTagCompound), null, null));
+		cNode.fields.add(new FieldNode(ACC_PUBLIC, "cachedTileEntity", fieldDesc(c_TileEntity), null, null)); // cached te for rendering
 		
 		for (MethodNode mn : cNode.methods)
 		{
@@ -112,8 +114,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_storedMetadata, "I"));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
-						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_NBTTagCompound))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_TileEntityPiston))));
 						newInsns.add(new JumpInsnNode(GOTO, ((JumpInsnNode)insn).label)); // else
 						newInsns.add(l1);
 					}

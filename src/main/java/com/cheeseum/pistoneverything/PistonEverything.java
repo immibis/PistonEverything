@@ -7,8 +7,8 @@ import java.util.List;
 import net.minecraft.block.Block;
 import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
+import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.texture.TextureMap;
 import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
@@ -54,6 +54,15 @@ public final class PistonEverything
             try {
                 Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
                 storedTileEntityData.set(tePiston, teData);
+
+                // construct and cache a "dummy" te for rendering
+                Field cachedTileEntity = c.getDeclaredField("cachedTileEntity");
+                TileEntity cachedTE = TileEntity.createAndLoadEntity(teData);
+                cachedTE.worldObj = tePiston.worldObj;
+                cachedTE.blockMetadata = tePiston.getBlockMetadata();
+                cachedTE.blockType = Block.blocksList[tePiston.getStoredBlockID()];
+                
+                cachedTileEntity.set(tePiston, cachedTE);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -61,8 +70,21 @@ public final class PistonEverything
     }
 	
     // TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
-	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, int block, int meta, NBTTagCompound tileEntityData)
+	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, int block, int meta, TileEntityPiston tePiston)
 	{
+	    NBTTagCompound tileEntityData = null;
+	     
+	    Class c = tePiston.getClass();
+	    try {
+	        Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
+	        tileEntityData = (NBTTagCompound) storedTileEntityData.get(tePiston);
+
+	        Field cachedTileEntity = c.getDeclaredField("cachedTileEntity");
+	        cachedTileEntity.set(tePiston, null);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    
 	    worldObj.setBlock(xCoord, yCoord, zCoord, block);
 	    worldObj.setBlockMetadataWithNotify(xCoord, yCoord, zCoord, meta, 3);
 	    
@@ -114,45 +136,7 @@ public final class PistonEverything
 	}
 	
 	public static void renderPistonBlock (RenderBlocks blockRenderer, Block block, int x, int y, int z, float parTick, TileEntityPiston te) {
-	    NBTTagCompound teData = null;
-	    
-	    Class c = te.getClass();
-	    try {
-	        Field storedTileEntityData = c.getDeclaredField("storedTileEntityData");
-	        teData = (NBTTagCompound) storedTileEntityData.get(te);
-	    } catch (Exception e) {
-	        e.printStackTrace();
-	    }
-	    
-	    if (teData != null) {
-	        Tessellator tessellator = Tessellator.instance;
-            TileEntityRenderer ter = TileEntityRenderer.instance;
-	        
-	        // from rendertileentity
-            int i = TileEntityRenderer.instance.worldObj.getLightBrightnessForSkyBlocks(x, y, z, 0);
-            int j = i % 65536;
-            int k = i / 65536;
-            OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
-            GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
-            
-            // offset render coords according to piston progress
-            double renderX = x - ter.staticPlayerX + te.getOffsetX(parTick);
-            double renderY = y - ter.staticPlayerY + te.getOffsetY(parTick);
-            double renderZ = z - ter.staticPlayerZ + te.getOffsetZ(parTick);
-            
-            // FIXME: cache this te somewhere, recreating it here is probably really slow
-	        TileEntity storedTE = TileEntity.createAndLoadEntity(teData);
-	        storedTE.worldObj = ter.instance.worldObj;
-	        storedTE.blockMetadata = te.getBlockMetadata();
-	        storedTE.blockType = Block.blocksList[te.getStoredBlockID()];
-	       
-	        TileEntityRenderer.instance.renderTileEntityAt(storedTE, renderX, renderY, renderZ, 1.0f);
-	       
-	        // re-bind the block texture, very important
-	        ter.renderEngine.bindTexture(TextureMap.locationBlocksTexture);
-	    }
-	   
-	    // render the rest of the block, fallback renders in case something throws a tantrum
+	    // render the block, fallback renders in case something throws a tantrum
 	    try {
 	        blockRenderer.renderBlockAllFaces(block, x, y, z);
 	    } catch (Exception e) {
@@ -160,6 +144,50 @@ public final class PistonEverything
 	            blockRenderer.renderStandardBlock(block, x, y, z);
 	        } catch (Exception ex) {
 	            blockRenderer.renderStandardBlock(Block.obsidian, x, y, z);
+	        }
+	    }
+	    
+	    TileEntity cachedTE = null;
+	    Class c = te.getClass();
+	    try {
+	        Field cachedTileEntity = c.getDeclaredField("cachedTileEntity");
+	        cachedTE = (TileEntity) cachedTileEntity.get(te);
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	    
+	    // try to render the stored tileentity if we have one
+	    // done last so block renders use the standard piston tessellator set up
+	    if (cachedTE != null) {
+            TileEntityRenderer ter = TileEntityRenderer.instance;
+	        
+            if (ter.hasSpecialRenderer(cachedTE)) {
+                // found that some TEs like to try and tessellate again 
+                Tessellator.instance.draw();
+                
+    	        // from rendertileentity
+                int i = ter.worldObj.getLightBrightnessForSkyBlocks(x, y, z, 0);
+                int j = i % 65536;
+                int k = i / 65536;
+                OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
+                GL11.glColor4f(1.0F, 1.0F, 1.0F, 1.0F);
+                
+                // avoid goofy lighting
+                RenderHelper.enableStandardItemLighting();
+                
+                // offset render coords according to piston progress
+                double renderX = x - ter.staticPlayerX + te.getOffsetX(parTick);
+                double renderY = y - ter.staticPlayerY + te.getOffsetY(parTick);
+                double renderZ = z - ter.staticPlayerZ + te.getOffsetZ(parTick);
+                
+                try {
+                    ter.renderTileEntityAt(cachedTE, renderX, renderY, renderZ, 1.0f);
+                } catch (Exception e) {
+                    // expected that some stuff will fail, do nothing
+                }
+    	       
+                // there's a draw that picks up after where we inject
+                Tessellator.instance.startDrawingQuads();
 	        }
 	    }
 	}
