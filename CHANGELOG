@@ -4,3 +4,6 @@
 1.0.2
 - left some debug stuff in that dumped classes to /tmp (whoops)
 - fix crash with some blocks calculating bounds (e.g. carpenter's blocks)
+
+1.0.3
+- nicer block renders (less obsidian block, more fancy fancy)
