@@ -9,7 +9,8 @@ import net.minecraft.client.renderer.OpenGlHelper;
 import net.minecraft.client.renderer.RenderBlocks;
 import net.minecraft.client.renderer.RenderHelper;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.tileentity.TileEntityRenderer;
+import net.minecraft.client.renderer.tileentity.TileEntityRendererDispatcher;
+import net.minecraft.init.Blocks;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityPiston;
@@ -20,10 +21,10 @@ import org.lwjgl.opengl.GL11;
 public final class PistonEverything
 {
     protected static class WhitelistData {
-		int id;
+		String id;
 		int meta;
 		
-		public WhitelistData (int id, int meta) {
+		public WhitelistData (String id, int meta) {
 			this.id = id;
 			this.meta = meta;
 		}
@@ -32,7 +33,7 @@ public final class PistonEverything
 		public boolean equals (Object o) {
 			if (o instanceof WhitelistData) {
 				WhitelistData d = (WhitelistData)o;
-				return (d.id == this.id && d.meta == this.meta);
+				return (d.id.equals(this.id) && d.meta == this.meta);
 			}
 			
 			return false;
@@ -40,7 +41,7 @@ public final class PistonEverything
 		
 		@Override
 		public int hashCode () {
-			return id + meta;
+			return id.hashCode() + meta;
 		}
 	}
     
@@ -58,9 +59,9 @@ public final class PistonEverything
                 // construct and cache a "dummy" te for rendering
                 Field cachedTileEntity = c.getDeclaredField("cachedTileEntity");
                 TileEntity cachedTE = TileEntity.createAndLoadEntity(teData);
-                cachedTE.worldObj = tePiston.worldObj;
+                cachedTE.setWorldObj(tePiston.getWorldObj());
                 cachedTE.blockMetadata = tePiston.getBlockMetadata();
-                cachedTE.blockType = Block.blocksList[tePiston.getStoredBlockID()];
+                cachedTE.blockType = tePiston.getStoredBlockID();
                 
                 cachedTileEntity.set(tePiston, cachedTE);
             } catch (Exception e) {
@@ -70,7 +71,7 @@ public final class PistonEverything
     }
 	
     // TODO: is it REALLY a good idea to pull these out instead of rolling them in bytecode?
-	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, int block, int meta, TileEntityPiston tePiston)
+	public static void restoreStoredPistonBlock (World worldObj, int xCoord, int yCoord, int zCoord, Block block, int meta, TileEntityPiston tePiston)
 	{
 	    NBTTagCompound tileEntityData = null;
 	     
@@ -92,7 +93,7 @@ public final class PistonEverything
 	    te.xCoord = xCoord;
 	    te.yCoord = yCoord;
 	    te.zCoord = zCoord;
-	    worldObj.setBlockTileEntity(xCoord, yCoord, zCoord, te);
+	    worldObj.setTileEntity(xCoord, yCoord, zCoord, te);
 
 	    worldObj.notifyBlocksOfNeighborChange(xCoord, yCoord, zCoord, block);
 	}
@@ -100,7 +101,7 @@ public final class PistonEverything
 	public static NBTTagCompound getBlockTileEntityData(World worldObj, int x, int y, int z)
 	{
 		NBTTagCompound teData = null;
-		TileEntity te = worldObj.getBlockTileEntity(x, y, z);
+		TileEntity te = worldObj.getTileEntity(x, y, z);
 		if (te != null) {
 			teData = new NBTTagCompound();
 			te.writeToNBT(teData);
@@ -109,14 +110,15 @@ public final class PistonEverything
 		return teData;
 	}
 	
-	public static void whitelistBlock (int block, int meta)
+	public static void whitelistBlock (String blockName, int meta)
 	{
-		blockWhitelist.add(new WhitelistData(block, meta));
+		blockWhitelist.add(new WhitelistData(blockName, meta));
 	}
 	
-	public static boolean isBlockWhitelisted (int block, int meta)
+	public static boolean isBlockWhitelisted (Block block, int meta)
 	{
-		boolean isWhiteListed = blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
+		String blockName = block.getUnlocalizedName();
+		boolean isWhiteListed = blockWhitelist.contains(new WhitelistData(blockName, -1)) || blockWhitelist.contains(new WhitelistData(blockName, meta));
 		
 		if (doWhitelist) {
 		    return isWhiteListed;
@@ -126,11 +128,12 @@ public final class PistonEverything
 	}
 	
 	// The odd arguments are just to cut down on the number of World methods we have to track in the transformer
-	public static boolean isBlockWhitelisted (int block, World world, int x, int y, int z)
-	{
-		if (world.blockHasTileEntity(x, y, z))
+	public static boolean isBlockWhitelisted (Block block, World world, int x, int y, int z)
+	{	
+		int meta = world.getBlockMetadata(x, y, z);
+		if (world.getBlock(x, y, z).hasTileEntity(meta))
 		{
-			return isBlockWhitelisted(block, world.getBlockMetadata(x, y, z));
+			return isBlockWhitelisted(block, meta);
 		} 
 		return true;
 	}
@@ -143,7 +146,7 @@ public final class PistonEverything
 	        try {
 	            blockRenderer.renderStandardBlock(block, x, y, z);
 	        } catch (Exception ex) {
-	            blockRenderer.renderStandardBlock(Block.obsidian, x, y, z);
+	            blockRenderer.renderStandardBlock(Blocks.obsidian, x, y, z);
 	        }
 	    }
 	    
@@ -159,14 +162,14 @@ public final class PistonEverything
 	    // try to render the stored tileentity if we have one
 	    // done last so block renders use the standard piston tessellator set up
 	    if (cachedTE != null) {
-            TileEntityRenderer ter = TileEntityRenderer.instance;
+            TileEntityRendererDispatcher ter = TileEntityRendererDispatcher.instance;
 	        
             if (ter.hasSpecialRenderer(cachedTE)) {
                 // found that some TEs like to try and tessellate again 
                 Tessellator.instance.draw();
                 
     	        // from rendertileentity
-                int i = ter.worldObj.getLightBrightnessForSkyBlocks(x, y, z, 0);
+                int i = ter.field_147550_f.getLightBrightnessForSkyBlocks(x, y, z, 0);
                 int j = i % 65536;
                 int k = i / 65536;
                 OpenGlHelper.setLightmapTextureCoords(OpenGlHelper.lightmapTexUnit, (float)j / 1.0F, (float)k / 1.0F);
@@ -176,9 +179,9 @@ public final class PistonEverything
                 RenderHelper.enableStandardItemLighting();
                 
                 // offset render coords according to piston progress
-                double renderX = x - ter.staticPlayerX + te.getOffsetX(parTick);
-                double renderY = y - ter.staticPlayerY + te.getOffsetY(parTick);
-                double renderZ = z - ter.staticPlayerZ + te.getOffsetZ(parTick);
+                double renderX = x - ter.staticPlayerX + te.func_145865_b(parTick); //getOffsetX(parTick);
+                double renderY = y - ter.staticPlayerY + te.func_145862_c(parTick); //getOffsetY(parTick);
+                double renderZ = z - ter.staticPlayerZ + te.func_145859_d(parTick); //getOffsetZ(parTick);
                 
                 try {
                     ter.renderTileEntityAt(cachedTE, renderX, renderY, renderZ, 1.0f);

@@ -1,19 +1,13 @@
 package com.cheeseum.pistoneverything;
 
 import java.io.File;
-import java.net.URISyntaxException;
 
-import net.minecraftforge.client.event.TextureStitchEvent;
-import net.minecraftforge.common.Configuration;
-import net.minecraftforge.common.MinecraftForge;
-import net.minecraftforge.common.Property;
-import net.minecraftforge.event.ForgeSubscribe;
+import net.minecraftforge.common.config.Configuration;
+import net.minecraftforge.common.config.Property;
 
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 
-import cpw.mods.fml.client.FMLFileResourcePack;
-import cpw.mods.fml.client.FMLFolderResourcePack;
 import cpw.mods.fml.common.DummyModContainer;
 import cpw.mods.fml.common.LoadController;
 import cpw.mods.fml.common.ModMetadata;
@@ -59,11 +53,11 @@ public class PistonEverythingMod extends DummyModContainer {
         		
         		if (entryData.length > 1) {
         			PistonEverything.whitelistBlock(
-        					Integer.parseInt(entryData[0]),
+        					entryData[0],
         					Integer.parseInt(entryData[1])
         			);
         		} else if (entryData.length == 1) { // wildcard metadata
-        			PistonEverything.whitelistBlock(Integer.parseInt(entryData[0]), -1);
+        			PistonEverything.whitelistBlock(entryData[0], -1);
         		}
         	}
         }

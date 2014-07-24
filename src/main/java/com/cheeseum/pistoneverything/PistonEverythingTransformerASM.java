@@ -29,12 +29,20 @@ import org.objectweb.asm.tree.VarInsnNode;
 import com.cheeseum.pistoneverything.PistonEverythingObfuscationMapper.MethodData;
 
 import cpw.mods.fml.common.FMLLog;
+import org.apache.logging.log4j.Level;
 
 public class PistonEverythingTransformerASM implements IClassTransformer, Opcodes
 {
 	// XXX: this is initialized out in the loading plugin and it feels hacky
 	public static PistonEverythingObfuscationMapper obfMapper;
-	private static String c_PistonEverything = "com/cheeseum/pistoneverything/PistonEverything";
+	
+	private static String c_PistonEverything;
+	private static String c_NBTTagCompound;
+	private static String c_World;
+	private static String c_TileEntity;
+	private static String c_TileEntityPiston;
+    private static String c_Block;
+    private static String c_RenderBlocks;
 	
 	private String fieldDesc (String c)
 	{
@@ -50,6 +58,17 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 	{
 		return mn.name.equals(mData.name) && mn.desc.equals(mData.desc); 
 	}
+
+	public static void initClassMappings()
+	{
+		c_PistonEverything = "com/cheeseum/pistoneverything/PistonEverything";
+		c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
+		c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
+		c_TileEntity = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntity", "TileEntity");
+		c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
+		c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
+		c_RenderBlocks = obfMapper.getClassMapping("net/minecraft/client/renderer/RenderBlocks", "RenderBlocks");
+	}
 	
 	private byte[] transformTileEntityPiston(String className, byte[] in)
 	{
@@ -57,23 +76,19 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		ClassReader cr = new ClassReader(in);
 		cr.accept(cNode, 0);
 		
-		// class, field, and method mappings from mcp
-		String c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
-		String c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
-		String c_TileEntity = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntity", "TileEntity");
-		String c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
-		String f_worldObj = obfMapper.getFieldMapping("worldObj", "field_70331_k");
-		String f_xCoord = obfMapper.getFieldMapping("xCoord", "field_70329_l");
-		String f_yCoord = obfMapper.getFieldMapping("yCoord", "field_70330_m");
-		String f_zCoord = obfMapper.getFieldMapping("zCoord", "field_70327_n");
-		String f_storedBlockID = obfMapper.getFieldMapping("storedBlockID", "field_70348_a");
-		String f_storedMetadata = obfMapper.getFieldMapping("storedMetadata", "field_70346_b");
-		MethodData m_clearPistonTileEntity = obfMapper.getMethodMapping("clearPistonTileEntity", "func_70339_i", "()V");
-		MethodData m_updateEntity = obfMapper.getMethodMapping("updateEntity", "func_70316_g", "()V");
-		MethodData m_readFromNBT = obfMapper.getMethodMapping("readFromNBT", "func_70307_a", "(Lnet/minecraft/nbt/NBTTagCompound;)V");
-		MethodData m_writeToNBT = obfMapper.getMethodMapping("writeToNBT", "func_70310_b", "(Lnet/minecraft/nbt/NBTTagCompound;)V");
+		String f_worldObj = obfMapper.getFieldMapping("worldObj", "field_145850_b");
+		String f_xCoord = obfMapper.getFieldMapping("xCoord", "field_145851_c");
+		String f_yCoord = obfMapper.getFieldMapping("yCoord", "field_145848_d");
+		String f_zCoord = obfMapper.getFieldMapping("zCoord", "field_145849_e");
+		String f_storedBlock = obfMapper.getFieldMapping("storedBlock", "field_145869_a");
+		String f_storedMetadata = obfMapper.getFieldMapping("storedMetadata", "field_145876_i");
+		MethodData m_clearPistonTileEntity = obfMapper.getMethodMapping("clearPistonTileEntity", "func_145866_f", "()V");
+		MethodData m_updateEntity = obfMapper.getMethodMapping("updateEntity", "func_145845_h", "()V");
+		MethodData m_readFromNBT = obfMapper.getMethodMapping("readFromNBT", "func_145839_a", "(Lnet/minecraft/nbt/NBTTagCompound;)V");
+		MethodData m_writeToNBT = obfMapper.getMethodMapping("writeToNBT", "func_145841_b", "(Lnet/minecraft/nbt/NBTTagCompound;)V");
 		MethodData m_getCompoundTag = obfMapper.getMethodMapping("getCompoundTag", "func_74775_l", "(Ljava/lang/String;)Lnet/minecraft/nbt/NBTTagCompound;");
 		MethodData m_setCompoundTag = obfMapper.getMethodMapping("setCompoundTag", "func_74766_a", "(Ljava/lang/String;Lnet/minecraft/nbt/NBTTagCompound;)V");
+		MethodData m_setTag = obfMapper.getMethodMapping("setTag", "func_74782_a", "(Ljava/lang/String;Lnet/minecraft/nbt/NBTBase;)V");
 		MethodData m_hasKey = obfMapper.getMethodMapping("hasKey", "func_74764_b", "(Ljava/lang/String;)Z");
 		
 		cNode.fields.add(new FieldNode(ACC_PUBLIC, "storedTileEntityData", fieldDesc(c_NBTTagCompound), null, null));
@@ -83,7 +98,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		{
 			if (methodEquals(mn, m_clearPistonTileEntity) || methodEquals(mn, m_updateEntity))
 			{
-				FMLLog.finest("patching clearPistonTileEntity/updatEntity");
+				FMLLog.log(Level.TRACE, "patching clearPistonTileEntity/updatEntity");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -91,15 +106,15 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					AbstractInsnNode insn = it.next();
 					newInsns.add(insn);
 					
-					if (insn instanceof JumpInsnNode && insn.getOpcode() == IF_ICMPNE)
+					if (insn instanceof JumpInsnNode && insn.getOpcode() == IF_ACMPNE)
 					{
-                        FMLLog.finest("injecting restoreStoredPistonBlock");
+                        FMLLog.log(Level.TRACE, "injecting restoreStoredPistonBlock");
 
 						// code to restore stored tile entities
 						LabelNode l1 = new LabelNode();
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-						newInsns.add(new JumpInsnNode(IFNULL, l1)); //if not null
+						newInsns.add(new JumpInsnNode(IFNULL, l1)); //if not null then continue
 						
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_worldObj, fieldDesc(c_World)));
@@ -110,11 +125,11 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_zCoord, "I"));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
-						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_storedBlockID, "I"));
+						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_storedBlock, fieldDesc(c_Block)));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, f_storedMetadata, "I"));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "restoreStoredPistonBlock", String.format("(%sIIIII%s)V", fieldDesc(c_World), fieldDesc(c_TileEntityPiston))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "restoreStoredPistonBlock", String.format("(%sIII%sI%s)V", fieldDesc(c_World), fieldDesc(c_Block), fieldDesc(c_TileEntityPiston))));
 						newInsns.add(new JumpInsnNode(GOTO, ((JumpInsnNode)insn).label)); // else
 						newInsns.add(l1);
 					}
@@ -124,7 +139,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			
 			if (methodEquals(mn, m_readFromNBT))
 			{
-				FMLLog.finest("patching readFromNBT");
+				FMLLog.log(Level.TRACE, "patching readFromNBT");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -152,7 +167,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 
 			if (methodEquals(mn, m_writeToNBT))
 			{
-				FMLLog.finest("patching writeToNBT");
+				FMLLog.log(Level.TRACE, "patching writeToNBT");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -168,7 +183,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new LdcInsnNode("blockTileEntity"));
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new FieldInsnNode(GETFIELD, c_TileEntityPiston, "storedTileEntityData", fieldDesc(c_NBTTagCompound)));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_NBTTagCompound, m_setCompoundTag.name, m_setCompoundTag.desc));
+						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_NBTTagCompound, m_setTag.name, m_setTag.desc));
 						newInsns.add(l1);
 					}
 					
@@ -192,22 +207,20 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		cr.accept(cNode, 0);
 		
 		// class, field, and method mappings
-		String c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
-		String c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
-		String c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
-		MethodData m_onBlockEventReceived = obfMapper.getMethodMapping("onBlockEventReceived", "func_71883_b", "(Lnet/minecraft/world/World;IIIII)Z");
-		MethodData m_getBlockTileEntity = obfMapper.getMethodMapping("getBlockTileEntity", "func_72796_p", "(III)Lnet/minecraft/tileentity/TileEntity;");
-		MethodData m_setBlockTileEntity = obfMapper.getMethodMapping("setBlockTileEntity", "func_72837_a", "(IIILnet/minecraft/tileentity/TileEntity;)V");
-		MethodData m_removeBlockTileEntity = obfMapper.getMethodMapping("removeBlockTileEntity", "func_72932_q", "(III)V");
+		MethodData m_onBlockEventReceived = obfMapper.getMethodMapping("onBlockEventReceived", "func_149696_a", "(Lnet/minecraft/world/World;IIIII)Z");
+		MethodData m_getTileEntity = obfMapper.getMethodMapping("getTileEntity", "func_147438_o", "(III)Lnet/minecraft/tileentity/TileEntity;");
+		MethodData m_setTileEntity = obfMapper.getMethodMapping("setTileEntity", "func_147455_a", "(IIILnet/minecraft/tileentity/TileEntity;)V");
+		MethodData m_removeTileEntity = obfMapper.getMethodMapping("removeTileEntity", "func_147475_p", "(III)V");
+		MethodData m_getBlock = obfMapper.getMethodMapping("getBlock", "func_147439_a", "(III)Lnet/minecraft/block/Block;");
 		MethodData m_blockHasTileEntity = obfMapper.getMethodMapping("blockHasTileEntity", "func_72927_d", "(III)Z");
-		MethodData m_tryExtend = obfMapper.getMethodMapping("tryExtend", "func_72115_j", "(Lnet/minecraft/world/World;IIII)Z");
-		MethodData m_canPushBlock = obfMapper.getMethodMapping("canPushBlock", "func_72111_a", "(ILnet/minecraft/world/World;IIIZ)Z");
-		
+		MethodData m_tryExtend = obfMapper.getMethodMapping("tryExtend", "func_150079_i", "(Lnet/minecraft/world/World;IIII)Z");
+		MethodData m_canPushBlock = obfMapper.getMethodMapping("canPushBlock", "func_150080_a", "(Lnet/minecraft/block/Block;Lnet/minecraft/world/World;IIIZ)Z");
+
 		for (MethodNode mn : cNode.methods)
 		{
 			if (methodEquals(mn, m_onBlockEventReceived))
 			{
-				FMLLog.finest("patching onBlockEventReceived...");
+				FMLLog.log(Level.TRACE, "patching onBlockEventReceived...");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -218,7 +231,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					// find the sticky piston logic
 					if (insn instanceof VarInsnNode && insn.getOpcode() == ISTORE && ((VarInsnNode) insn).var == 4)
 					{
-						FMLLog.finest("patching sticky piston logic");
+						FMLLog.log(Level.TRACE, "patching sticky piston logic");
 						// inject tile entity storage code
 						newInsns.add(new VarInsnNode(ALOAD, 1));
 						newInsns.add(new VarInsnNode(ILOAD, 8));
@@ -231,7 +244,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 8));
 						newInsns.add(new VarInsnNode(ILOAD, 9));
 						newInsns.add(new VarInsnNode(ILOAD, 10));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_removeBlockTileEntity.name, m_removeBlockTileEntity.desc));						
+						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_removeTileEntity.name, m_removeTileEntity.desc));						
 						
 						// jump to after the settileentity call
 						while (it.hasNext())
@@ -239,9 +252,9 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 							insn = it.next();
 							newInsns.add(insn);
 							
-							if (insn instanceof MethodInsnNode && methodEquals((MethodInsnNode) insn, m_setBlockTileEntity))
+							if (insn instanceof MethodInsnNode && methodEquals((MethodInsnNode) insn, m_setTileEntity))
 							{
-								FMLLog.finest("found setBlockTileEntity");
+								FMLLog.log(Level.TRACE, "found setTileEntity");
 								break;
 							}
 						}
@@ -250,7 +263,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 2));
 						newInsns.add(new VarInsnNode(ILOAD, 3));
 						newInsns.add(new VarInsnNode(ILOAD, 4));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getBlockTileEntity.name, m_getBlockTileEntity.desc));
+						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getTileEntity.name, m_getTileEntity.desc));
 						newInsns.add(new TypeInsnNode(CHECKCAST, c_TileEntityPiston));
 						newInsns.add(new VarInsnNode(ALOAD, 14));
 						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
@@ -262,7 +275,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			
 			if (methodEquals(mn, m_tryExtend))
 			{
-				FMLLog.finest("patching tryExtend...");
+				FMLLog.log(Level.TRACE, "patching tryExtend...");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -278,7 +291,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						AbstractInsnNode node = insn;
 						while (node != null)
 						{
-							if (node instanceof JumpInsnNode && node.getOpcode() == IF_ICMPNE)
+							if (node instanceof JumpInsnNode && node.getOpcode() == IF_ACMPNE)
 							{
 								target = ((JumpInsnNode) node).label;
 								break;
@@ -299,7 +312,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 14));
 						newInsns.add(new VarInsnNode(ILOAD, 15));
 						newInsns.add(new VarInsnNode(ILOAD, 16));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_removeBlockTileEntity.name, m_removeBlockTileEntity.desc));						
+						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_removeTileEntity.name, m_removeTileEntity.desc));						
 						
 						// skip to the label
 						while (it.hasNext()) 
@@ -317,9 +330,9 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 							insn = it.next();
 							newInsns.add(insn);
 							
-							if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_setBlockTileEntity))
+							if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_setTileEntity))
 							{
-								FMLLog.finest("found setBlockTileEntity");
+								FMLLog.log(Level.TRACE, "found setTileEntity");
 								break;
 							}
 						}
@@ -329,7 +342,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new VarInsnNode(ILOAD, 6));
 						newInsns.add(new VarInsnNode(ILOAD, 7));
 						newInsns.add(new VarInsnNode(ILOAD, 8));
-						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getBlockTileEntity.name, m_getBlockTileEntity.desc));
+						newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_World, m_getTileEntity.name, m_getTileEntity.desc));
 						newInsns.add(new TypeInsnNode(CHECKCAST, c_TileEntityPiston));
 						newInsns.add(new VarInsnNode(ALOAD, 19));
 						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "storeTileEntity", String.format("(%s%s)V", fieldDesc(c_TileEntityPiston), fieldDesc(c_NBTTagCompound))));
@@ -341,7 +354,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			
 			if (methodEquals(mn, m_canPushBlock))
 			{
-				FMLLog.finest("patching canPushBlock...");
+				FMLLog.log(Level.TRACE, "patching canPushBlock...");
 				
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				
@@ -351,7 +364,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					node = node.getNext();
 					if (node instanceof MethodInsnNode && node.getOpcode() == INVOKEVIRTUAL)
 					{
-						if (methodEquals(((MethodInsnNode) node), m_blockHasTileEntity))
+						if (methodEquals(((MethodInsnNode) node), m_getBlock))
 						{
 							// FIXME: kind of lame way to do this
 							// go back 4 instructions before variable loading
@@ -372,18 +385,18 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					
 					if (insn.equals(node))
 					{
-						FMLLog.finest("injecting block whitelist check");
+						FMLLog.log(Level.TRACE, "injecting block whitelist check");
 						// inject black/whitelist code
-						newInsns.add(new VarInsnNode(ILOAD, 0));
+						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new VarInsnNode(ALOAD, 1));
 						newInsns.add(new VarInsnNode(ILOAD, 2));
 						newInsns.add(new VarInsnNode(ILOAD, 3));
 						newInsns.add(new VarInsnNode(ILOAD, 4));
-						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "isBlockWhitelisted", String.format("(I%sIII)Z", fieldDesc(c_World))));
+						newInsns.add(new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "isBlockWhitelisted", String.format("(%s%sIII)Z", fieldDesc(c_Block), fieldDesc(c_World))));
 						newInsns.add(new InsnNode(IRETURN));
 						
 						// throw out the rest of the tileentity check
-						FMLLog.finest("removing TileEntity check");
+						FMLLog.log(Level.TRACE, "removing TileEntity check");
 						break;
 					}
 				}
@@ -402,15 +415,14 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
         ClassReader cr = new ClassReader(in);
         cr.accept(cNode, 0);
         
-        String c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
-        MethodData m_setBlockBoundsBasedOnState = obfMapper.getMethodMapping("setBlockBoundsBasedOnState", "func_71902_a", "(Lnet/minecraft/world/IBlockAccess;III)V");
-        MethodData m_hasTileEntity = obfMapper.getMethodMapping("hasTileEntity", "func_71887_s", "()Z"); //depreciated
+        MethodData m_setBlockBoundsBasedOnState = obfMapper.getMethodMapping("setBlockBoundsBasedOnState", "func_149719_a", "(Lnet/minecraft/world/IBlockAccess;III)V");
+        MethodData m_hasTileEntity = obfMapper.getMethodMapping("hasTileEntity", "func_149716_u", "()Z"); //depreciated
         
         for (MethodNode mn : cNode.methods)
         {
             if (methodEquals(mn, m_setBlockBoundsBasedOnState))
             {
-                FMLLog.finest("patching setBlockBoundsBasedOnState..");
+                FMLLog.log(Level.TRACE, "patching setBlockBoundsBasedOnState..");
                 ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
               
                 InsnList newInsns = new InsnList();
@@ -420,15 +432,16 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                     newInsns.add(insn);
                     
                     // don't calculate block bounds for te providers 
-                    if (insn instanceof JumpInsnNode && insn.getOpcode() == IFNULL)
+                    if (insn instanceof JumpInsnNode && insn.getOpcode() == IF_ACMPEQ)
                     {
-                        AbstractInsnNode prev = insn.getPrevious();
-                        if (prev != null && prev instanceof VarInsnNode && ((VarInsnNode)prev).var == 6)
-                        {
+                        //AbstractInsnNode prev = insn.getPrevious();
+                        //if (prev != null && prev instanceof VarInsnNode && ((VarInsnNode)prev).var == 6)
+                        //{
+                        	FMLLog.log(Level.TRACE, "inserting tileentity check");
                             newInsns.add(new VarInsnNode(ALOAD, 6));
                             newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_Block, m_hasTileEntity.name, m_hasTileEntity.desc));
                             newInsns.add(new JumpInsnNode(IFEQ, ((JumpInsnNode)insn).label));
-                        }
+                        //}
                     }
                 }
                 mn.instructions = newInsns;
@@ -447,17 +460,14 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
         cr.accept(cNode, 0);
         
         // class, field, and method mappings
-        String c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
-        String c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
-        String c_RenderBlocks = obfMapper.getClassMapping("net/minecraft/client/renderer/RenderBlocks", "RenderBlocks");
-        MethodData m_renderPiston = obfMapper.getMethodMapping("renderPiston", "func_76903_a", "(Lnet/minecraft/tileentity/TileEntityPiston;DDDF)V");
-        MethodData m_renderBlockAllFaces = obfMapper.getMethodMapping("renderBlockAllFaces", "func_78583_a", "(Lnet/minecraft/block/Block;III)V");
+        MethodData m_renderPiston = obfMapper.getMethodMapping("renderTileEntityAt", "func_147500_a", "(Lnet/minecraft/tileentity/TileEntityPiston;DDDF)V");
+        MethodData m_renderBlockAllFaces = obfMapper.getMethodMapping("renderBlockAllFaces", "func_147769_a", "(Lnet/minecraft/block/Block;III)V");
         
         for (MethodNode mn : cNode.methods)
         {
             if (methodEquals(mn, m_renderPiston))
             {
-                FMLLog.finest("patching renderPiston..");
+                FMLLog.log(Level.TRACE, "patching renderTileEntityAt..");
                 ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
               
                 InsnList newInsns = new InsnList();
@@ -467,7 +477,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                     
                     if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_renderBlockAllFaces))
                     {
-                        FMLLog.finest("Replacing block render call");
+                        FMLLog.log(Level.TRACE, "Replacing block render call");
                         newInsns.add(new VarInsnNode(FLOAD, 8));
                         newInsns.add(new VarInsnNode(ALOAD, 1));
                         insn = new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "renderPistonBlock", String.format("(%s%sIIIF%s)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block), fieldDesc(c_TileEntityPiston)));

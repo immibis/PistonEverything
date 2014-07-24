@@ -69,7 +69,7 @@ public class PistonEverythingObfuscationMapper {
 				}
 			}
 		} catch (IOException e) {
-			FMLLog.log(Level.SEVERE, "An error occurred loading the deobfuscation map data", e);
+			FMLLog.severe("An error occurred loading the deobfuscation map data: %s", e.getMessage());
 		}
 	}
 

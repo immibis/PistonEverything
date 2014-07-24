@@ -40,5 +40,11 @@ public class PistonEverythingLoadingPlugin implements IFMLLoadingPlugin {
 		//XXX: initializing this here is far from ideal, but it works
 		PistonEverythingTransformerASM.obfMapper = new PistonEverythingObfuscationMapper(runtimeDeobfuscationEnabled);
 		PistonEverythingTransformerASM.obfMapper.loadMappings("/deobfuscation_data-" + FMLInjectionData.data()[4] + ".lzma");
+		PistonEverythingTransformerASM.initClassMappings();
+	}
+
+	@Override
+	public String getAccessTransformerClass() {
+		return null;
 	}
 }
