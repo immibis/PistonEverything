@@ -1,6 +1,7 @@
 package com.cheeseum.pistoneverything;
 
 import java.io.File;
+import java.util.Arrays;
 
 import net.minecraft.block.Block;
 import net.minecraftforge.common.config.Configuration;
@@ -23,11 +24,15 @@ public class PistonEverythingMod extends DummyModContainer {
 	
 	public PistonEverythingMod () {
 		super(new ModMetadata());
-		
+	
+		// copied from the mcmod.info
 		ModMetadata md = getMetadata();
 		md.modId = "PistonEverything";
 		md.name = "Piston Everything";
 		md.version = "@VERSION@";
+		md.description = "Lets you push more things with pistons.";
+		md.url = "https://github.com/Cheeseum/PistonEverything";
+		md.authorList = Arrays.asList(new String[] {"Cheeseum"});
 	}
 	
 	@Override

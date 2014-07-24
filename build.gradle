@@ -4,10 +4,10 @@ buildscript {
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
-            maven {
-                name = "sonatype"
-                url = "https://oss.sonatype.org/content/repositories/snapshots/"
-            }
+        }
+        maven {
+            name = "sonatype"
+            url = "https://oss.sonatype.org/content/repositories/snapshots/"
         }
     }
     dependencies {
@@ -18,12 +18,16 @@ buildscript {
 apply plugin: 'forge'
 
 version = "1.0.4"
-group= "com.cheeseum.pistoneverything" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
+group = "com.cheeseum.pistoneverything" // http://maven.apache.org/guides/mini/guide-naming-conventions.html
 archivesBaseName = "PistonEverything-mc1.7.X"
 
 minecraft {
-	version = "1.7.2-10.12.1.1060"
-}
+    version = "1.7.2-10.12.1.1060"
+    assetDir = "eclipse/assets"
+
+    replace "@VERSION@", project.version
+    replaceIn "PistonEverythingMod.java"
+} 
 
 jar {
     manifest {
@@ -33,9 +37,13 @@ jar {
 
 processResources
 {
-    // replace stuff in mcmod.info, nothing else
+    // this will ensure that this task is redone when the versions change.
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    // replace stuff in mcmod.info
     from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod/info'
+        include 'mcmod.info'
                 
         // replace version and mcversion
         expand 'version':project.version, 'mcversion':project.minecraft.version

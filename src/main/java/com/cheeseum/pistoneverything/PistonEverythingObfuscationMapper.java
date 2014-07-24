@@ -5,7 +5,6 @@ import java.io.InputStreamReader;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
