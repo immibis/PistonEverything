@@ -18,14 +18,16 @@ import net.minecraft.world.World;
 
 import org.lwjgl.opengl.GL11;
 
+import cpw.mods.fml.common.registry.GameRegistry;
+
 public final class PistonEverything
 {
-    protected static class WhitelistData {
-		String id;
+	protected static class WhitelistData {
+		Block block;
 		int meta;
 		
-		public WhitelistData (String id, int meta) {
-			this.id = id;
+		public WhitelistData (Block block, int meta) {
+			this.block = block;
 			this.meta = meta;
 		}
 		
@@ -33,7 +35,7 @@ public final class PistonEverything
 		public boolean equals (Object o) {
 			if (o instanceof WhitelistData) {
 				WhitelistData d = (WhitelistData)o;
-				return (d.id.equals(this.id) && d.meta == this.meta);
+				return (d.block.equals(this.block) && d.meta == this.meta);
 			}
 			
 			return false;
@@ -41,7 +43,7 @@ public final class PistonEverything
 		
 		@Override
 		public int hashCode () {
-			return id.hashCode() + meta;
+			return block.hashCode() + meta;
 		}
 	}
     
@@ -110,15 +112,14 @@ public final class PistonEverything
 		return teData;
 	}
 	
-	public static void whitelistBlock (String blockName, int meta)
+	public static void whitelistBlock (Block block, int meta)
 	{
-		blockWhitelist.add(new WhitelistData(blockName, meta));
+		blockWhitelist.add(new WhitelistData(block, meta));
 	}
 	
 	public static boolean isBlockWhitelisted (Block block, int meta)
 	{
-		String blockName = block.getUnlocalizedName();
-		boolean isWhiteListed = blockWhitelist.contains(new WhitelistData(blockName, -1)) || blockWhitelist.contains(new WhitelistData(blockName, meta));
+		boolean isWhiteListed = blockWhitelist.contains(new WhitelistData(block, -1)) || blockWhitelist.contains(new WhitelistData(block, meta));
 		
 		if (doWhitelist) {
 		    return isWhiteListed;
