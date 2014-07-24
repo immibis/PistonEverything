@@ -24,18 +24,34 @@ public class PistonEverythingObfuscationMapper {
 		}
 		public String name;
 		public String desc;
+		
+		@Override
+		public boolean equals(Object o)
+		{
+			if (o instanceof MethodData) {
+				MethodData d = (MethodData)o;
+				return this.name.equals(d.name) && this.desc.equals(d.desc); 
+			}
+			return false;
+		}
+		
+		@Override
+		public int hashCode()
+		{
+			return this.name.hashCode() + this.desc.hashCode();
+		}
 	}
 	
 	private Map<String, String> classMap;
 	private Map<String, String> fieldMap;
-	private Map<String, MethodData> methodMap;
+	private Map<MethodData, MethodData> methodMap;
 	private boolean runtimeDeobfuscationEnabled;
 
 	public PistonEverythingObfuscationMapper (boolean enableRuntimeDeobfuscation)
 	{
 		classMap = new HashMap<String, String>();
 		fieldMap = new HashMap<String, String>();
-		methodMap = new HashMap<String, MethodData>();
+		methodMap = new HashMap<MethodData, MethodData>();
 		runtimeDeobfuscationEnabled = enableRuntimeDeobfuscation;
 	}
 	
@@ -65,7 +81,7 @@ public class PistonEverythingObfuscationMapper {
 					String obfName = parseMapString(parts[1]);
 					String srgName = parseMapString(parts[3]);
 					
-					methodMap.put(srgName, new MethodData(obfName, parts[2]));
+					methodMap.put(new MethodData(srgName, parts[4]), new MethodData(obfName, parts[2]));
 				}
 			}
 		} catch (IOException e) {
@@ -94,7 +110,9 @@ public class PistonEverythingObfuscationMapper {
 		if (!runtimeDeobfuscationEnabled)
 			return new MethodData(mcpName, desc);
 		
-		return methodMap.containsKey(srgName) ? methodMap.get(srgName) : new MethodData(srgName, desc);
+		MethodData md = new MethodData(srgName, desc);
+		
+		return methodMap.containsKey(md) ? methodMap.get(md) : new MethodData(srgName, desc);
 	}
 	
 	private String parseMapString (String in)
