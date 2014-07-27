@@ -7,3 +7,7 @@
 
 1.0.3
 - nicer block renders (less obsidian block, more fancy fancy)
+
+1.0.4
+- update to minecraft/forge 1.7.x
+- filter list uses string instead of numeric ids
