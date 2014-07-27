@@ -2,13 +2,11 @@ package com.cheeseum.pistoneverything;
 
 import static org.objectweb.asm.ClassWriter.COMPUTE_FRAMES;
 
-import java.io.DataOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.util.ListIterator;
 
 import net.minecraft.launchwrapper.IClassTransformer;
 
+import org.apache.logging.log4j.Level;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Opcodes;
@@ -27,9 +25,6 @@ import org.objectweb.asm.tree.TypeInsnNode;
 import org.objectweb.asm.tree.VarInsnNode;
 
 import com.cheeseum.pistoneverything.PistonEverythingObfuscationMapper.MethodData;
-
-import cpw.mods.fml.common.FMLLog;
-import org.apache.logging.log4j.Level;
 
 public class PistonEverythingTransformerASM implements IClassTransformer, Opcodes
 {
@@ -98,7 +93,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		{
 			if (methodEquals(mn, m_clearPistonTileEntity) || methodEquals(mn, m_updateEntity))
 			{
-				FMLLog.log(Level.TRACE, "patching clearPistonTileEntity/updatEntity");
+				PistonEverything.logger.log(Level.TRACE, "patching clearPistonTileEntity/updatEntity");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -108,7 +103,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					
 					if (insn instanceof JumpInsnNode && insn.getOpcode() == IF_ACMPNE)
 					{
-                        FMLLog.log(Level.TRACE, "injecting restoreStoredPistonBlock");
+                        PistonEverything.logger.log(Level.TRACE, "injecting restoreStoredPistonBlock");
 
 						// code to restore stored tile entities
 						LabelNode l1 = new LabelNode();
@@ -139,7 +134,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			
 			if (methodEquals(mn, m_readFromNBT))
 			{
-				FMLLog.log(Level.TRACE, "patching readFromNBT");
+				PistonEverything.logger.log(Level.TRACE, "patching readFromNBT");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -167,7 +162,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 
 			if (methodEquals(mn, m_writeToNBT))
 			{
-				FMLLog.log(Level.TRACE, "patching writeToNBT");
+				PistonEverything.logger.log(Level.TRACE, "patching writeToNBT");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -220,7 +215,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		{
 			if (methodEquals(mn, m_onBlockEventReceived))
 			{
-				FMLLog.log(Level.TRACE, "patching onBlockEventReceived...");
+				PistonEverything.logger.log(Level.TRACE, "patching onBlockEventReceived...");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -231,7 +226,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					// find the sticky piston logic
 					if (insn instanceof VarInsnNode && insn.getOpcode() == ISTORE && ((VarInsnNode) insn).var == 4)
 					{
-						FMLLog.log(Level.TRACE, "patching sticky piston logic");
+						PistonEverything.logger.log(Level.TRACE, "patching sticky piston logic");
 						// inject tile entity storage code
 						newInsns.add(new VarInsnNode(ALOAD, 1));
 						newInsns.add(new VarInsnNode(ILOAD, 8));
@@ -254,7 +249,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 							
 							if (insn instanceof MethodInsnNode && methodEquals((MethodInsnNode) insn, m_setTileEntity))
 							{
-								FMLLog.log(Level.TRACE, "found setTileEntity");
+								PistonEverything.logger.log(Level.TRACE, "found setTileEntity");
 								break;
 							}
 						}
@@ -275,7 +270,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			
 			if (methodEquals(mn, m_tryExtend))
 			{
-				FMLLog.log(Level.TRACE, "patching tryExtend...");
+				PistonEverything.logger.log(Level.TRACE, "patching tryExtend...");
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				InsnList newInsns = new InsnList();
 				while (it.hasNext())
@@ -332,7 +327,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 							
 							if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_setTileEntity))
 							{
-								FMLLog.log(Level.TRACE, "found setTileEntity");
+								PistonEverything.logger.log(Level.TRACE, "found setTileEntity");
 								break;
 							}
 						}
@@ -354,7 +349,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 			
 			if (methodEquals(mn, m_canPushBlock))
 			{
-				FMLLog.log(Level.TRACE, "patching canPushBlock...");
+				PistonEverything.logger.log(Level.TRACE, "patching canPushBlock...");
 				
 				ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
 				
@@ -385,7 +380,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 					
 					if (insn.equals(node))
 					{
-						FMLLog.log(Level.TRACE, "injecting block whitelist check");
+						PistonEverything.logger.log(Level.TRACE, "injecting block whitelist check");
 						// inject black/whitelist code
 						newInsns.add(new VarInsnNode(ALOAD, 0));
 						newInsns.add(new VarInsnNode(ALOAD, 1));
@@ -396,7 +391,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 						newInsns.add(new InsnNode(IRETURN));
 						
 						// throw out the rest of the tileentity check
-						FMLLog.log(Level.TRACE, "removing TileEntity check");
+						PistonEverything.logger.log(Level.TRACE, "removing TileEntity check");
 						break;
 					}
 				}
@@ -422,7 +417,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
         {
             if (methodEquals(mn, m_setBlockBoundsBasedOnState))
             {
-                FMLLog.log(Level.TRACE, "patching setBlockBoundsBasedOnState..");
+                PistonEverything.logger.log(Level.TRACE, "patching setBlockBoundsBasedOnState..");
                 ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
               
                 InsnList newInsns = new InsnList();
@@ -437,7 +432,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                         //AbstractInsnNode prev = insn.getPrevious();
                         //if (prev != null && prev instanceof VarInsnNode && ((VarInsnNode)prev).var == 6)
                         //{
-                        	FMLLog.log(Level.TRACE, "inserting tileentity check");
+                        	PistonEverything.logger.log(Level.TRACE, "inserting tileentity check");
                             newInsns.add(new VarInsnNode(ALOAD, 6));
                             newInsns.add(new MethodInsnNode(INVOKEVIRTUAL, c_Block, m_hasTileEntity.name, m_hasTileEntity.desc));
                             newInsns.add(new JumpInsnNode(IFEQ, ((JumpInsnNode)insn).label));
@@ -467,7 +462,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
         {
             if (methodEquals(mn, m_renderPiston))
             {
-                FMLLog.log(Level.TRACE, "patching renderTileEntityAt..");
+                PistonEverything.logger.log(Level.TRACE, "patching renderTileEntityAt..");
                 ListIterator<AbstractInsnNode> it = mn.instructions.iterator();
               
                 InsnList newInsns = new InsnList();
@@ -477,7 +472,7 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
                     
                     if (insn instanceof MethodInsnNode && methodEquals(((MethodInsnNode) insn), m_renderBlockAllFaces))
                     {
-                        FMLLog.log(Level.TRACE, "Replacing block render call");
+                        PistonEverything.logger.log(Level.TRACE, "Replacing block render call");
                         newInsns.add(new VarInsnNode(FLOAD, 8));
                         newInsns.add(new VarInsnNode(ALOAD, 1));
                         insn = new MethodInsnNode(INVOKESTATIC, c_PistonEverything, "renderPistonBlock", String.format("(%s%sIIIF%s)V", fieldDesc(c_RenderBlocks), fieldDesc(c_Block), fieldDesc(c_TileEntityPiston)));
@@ -502,22 +497,22 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 		String className = arg1;
 		if (className.equals("net.minecraft.tileentity.TileEntityPiston")) 
 		{
-			FMLLog.info("Patching class %s!", className);
+			PistonEverything.logger.info("Patching class %s!", className);
 			return transformTileEntityPiston(className, arg2);
 		} 
 		else if (className.equals("net.minecraft.block.BlockPistonBase"))
 		{
-			FMLLog.info("Patching class %s!", className);
+			PistonEverything.logger.info("Patching class %s!", className);
 			return transformBlockPistonBase(className, arg2);
 		}
 		else if (className.equals("net.minecraft.block.BlockPistonMoving"))
 		{
-		    FMLLog.info("Patching class %s!", className);
+		    PistonEverything.logger.info("Patching class %s!", className);
 		    return transformBlockPistonMoving(className, arg2);
         }
 		else if (className.equals("net.minecraft.client.renderer.tileentity.TileEntityRendererPiston"))
 		{
-		    FMLLog.info("Patching class %s!", className);
+		    PistonEverything.logger.info("Patching class %s!", className);
 		    return transformTileEntityRendererPiston(className, arg2);
 		}
 		

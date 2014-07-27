@@ -16,9 +16,9 @@ import net.minecraft.tileentity.TileEntity;
 import net.minecraft.tileentity.TileEntityPiston;
 import net.minecraft.world.World;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.lwjgl.opengl.GL11;
-
-import cpw.mods.fml.common.registry.GameRegistry;
 
 public final class PistonEverything
 {
@@ -48,6 +48,8 @@ public final class PistonEverything
 	}
     
     //public static Icon crateIcon;
+	public static final Logger logger = LogManager.getFormatterLogger("PistonEverything");
+	
 	private static List<WhitelistData> blockWhitelist = new ArrayList<WhitelistData>();
     public static boolean doWhitelist;
 
