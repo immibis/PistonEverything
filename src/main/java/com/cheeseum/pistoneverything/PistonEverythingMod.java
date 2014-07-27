@@ -52,11 +52,12 @@ public class PistonEverythingMod extends DummyModContainer {
 	public void postInit(FMLPostInitializationEvent event) {
         String[] defaultWhitelist = {};
         PistonEverything.doWhitelist = config.get(Configuration.CATEGORY_GENERAL, "whitelist", false, "true for whitelist, false for blacklist").getBoolean(true);
-        Property whitelist = config.get(Configuration.CATEGORY_GENERAL, "filter", defaultWhitelist, "white/blacklist, one entry per line, format is 'modid:blockid:meta' or just 'modid:blockid' to match any metadata, quotes optional");
+        Property whitelist = config.get(Configuration.CATEGORY_GENERAL, "filter", defaultWhitelist, "white/blacklist, one entry per line, format is 'modid:blockid:meta' or just 'modid:blockid' to match any metadata, vanilla modid is 'minecraft'");
         
         if (whitelist.isList()) {
         	for (String entry : whitelist.getStringList()) {
         		entry = entry.replace("\"", "");
+        		entry = entry.replace("'", "");
         		String entryData[] = entry.split(":");
         		
         		if (entryData.length < 2) {
