@@ -57,12 +57,12 @@ public class PistonEverythingTransformerASM implements IClassTransformer, Opcode
 	public static void initClassMappings()
 	{
 		c_PistonEverything = "com/cheeseum/pistoneverything/PistonEverything";
-		c_NBTTagCompound = obfMapper.getClassMapping("net/minecraft/nbt/NBTTagCompound", "NBTTagCompound");
-		c_World = obfMapper.getClassMapping("net/minecraft/world/World", "World");
-		c_TileEntity = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntity", "TileEntity");
-		c_TileEntityPiston = obfMapper.getClassMapping("net/minecraft/tileentity/TileEntityPiston", "TileEntityPiston");
-		c_Block = obfMapper.getClassMapping("net/minecraft/block/Block", "Block");
-		c_RenderBlocks = obfMapper.getClassMapping("net/minecraft/client/renderer/RenderBlocks", "RenderBlocks");
+		c_NBTTagCompound = "net/minecraft/nbt/NBTTagCompound";
+		c_World = "net/minecraft/world/World";
+		c_TileEntity = "net/minecraft/tileentity/TileEntity";
+		c_TileEntityPiston = "net/minecraft/tileentity/TileEntityPiston";
+		c_Block = "net/minecraft/block/Block";
+		c_RenderBlocks = "net/minecraft/client/renderer/RenderBlocks";
 	}
 	
 	private byte[] transformTileEntityPiston(String className, byte[] in)
